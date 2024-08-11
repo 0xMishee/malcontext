@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "virustotal.h"
-#include "curl/curl.h"
+#include <curl/curl.h>
+
 
 
 

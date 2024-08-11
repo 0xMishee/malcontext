@@ -5,6 +5,7 @@
 #include "miscellaneous.h"
 #include "yara_x_scan.h"
 #include "virustotal.h"
+#include <curl/curl.h>
 
 // TEMP Testing purposes only!
 #define FILE_PATH_DIR "E:\\malware overview re-write\\malware_context\\yara-x rules"
