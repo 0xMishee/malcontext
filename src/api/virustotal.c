@@ -15,7 +15,7 @@ bool virustotal_get(){
 
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "accept: application/json");
-    headers = curl_slist_append(headers, "x-apikey: 0a5d21405a58422eec3732793323b666f2962d439b42bb9028ee71968b1a4339");
+    headers = curl_slist_append(headers, "x-apikey: ");
     curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
 
     CURLcode ret = curl_easy_perform(hnd);
