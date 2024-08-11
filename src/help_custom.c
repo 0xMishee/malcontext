@@ -3,7 +3,7 @@
 
 
 
-void help() {
+void print_help_pages() {
 	printf("\nMalware Context - An analyze tool ");
 	printf("\n\n");
 
