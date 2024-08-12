@@ -81,6 +81,7 @@ char* virustotal_get_dns_resolution_object(const char* id, const char* api_key) 
 
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "accept: application/json");
+    headers = curl_slist_append(headers, "x-apikey: ");
     curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
 
     CURLcode ret = curl_easy_perform(hnd);
