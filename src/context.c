@@ -8,7 +8,7 @@
 void context_virustotal_file_print(char* virustotal_json_string){
 
     cJSON* json = cJSON_Parse(virustotal_json_string);
-    if (json == NULL) {
+    if (!json) {
         printf(ANSI_RED "[!] Error parsing JSON\n" ANSI_RESET);
         return;
     }
@@ -179,10 +179,63 @@ void context_virustotal_file_print(char* virustotal_json_string){
 void context_virustotal_file_behaviour_print(char* virustotal_json_string) {
 
     cJSON* json = cJSON_Parse(virustotal_json_string);
-    if (json == NULL) {
+    if (!json) {
         printf(ANSI_RED "[!] Error parsing JSON\n" ANSI_RESET);
         return;
     }
+
+    // Gotta collect them all!
+    // Will split this up later for modularity. But for now, monolith!
+    cJSON* data = cJSON_GetObjectItem(json, "data");
+    if (cJSON_IsObject(data)){
+        int counter;
+
+        cJSON* tags = cJSON_GetObjectItem(data, "tags");
+        cJSON* mitre_attack_techniques = cJSON_GetObjectItem(data, "mitre_attack_techniques");
+        cJSON* services_started = cJSON_GetObjectItem(data, "services_started");
+        cJSON* services_opened = cJSON_GetObjectItem(data, "services_opened");
+        cJSON* command_execution = cJSON_GetObjectItem(data, "command_execution");
+        cJSON* processes_terminated = cJSON_GetObjectItem(data, "processes_terminated");
+        cJSON* processes_created = cJSON_GetObjectItem(data, "processes_created");
+        cJSON* process_tree = cJSON_GetObjectItem(data, "process_tree");
+        cJSON* verdicts = cJSON_GetObjectItem(data, "verdicts");
+
+        printf("\n\n\n");
+        printf(ANSI_BOLD_BLUE"VirusTotal File Behaviour Report\n\n"ANSI_RESET);
+
+        // Verdicts
+        printf(ANSI_BOLD_GREEN"Verdicts\n"ANSI_RESET);
+        for (int i = 0; i < cJSON_GetArraySize(verdicts); i++) {
+            cJSON* verdict = cJSON_GetArrayItem(verdicts, i);
+            printf(ANSI_BOLD_YELLOW"%s\n"ANSI_RESET, verdict->valuestring);
+            if (i == cJSON_GetArraySize(verdicts) - 1) {
+                printf("\n");
+            };
+        };
+
+        // Tags
+        printf(ANSI_BOLD_GREEN"Tags\n"ANSI_RESET);
+        for (int i = 0; i < cJSON_GetArraySize(tags); i++) {
+            cJSON* tag = cJSON_GetArrayItem(tags, i);
+            printf(ANSI_BOLD_YELLOW"%s\n"ANSI_RESET, tag->valuestring);
+            if (i == cJSON_GetArraySize(tags) - 1) {
+                printf("\n");
+            };
+        };
+
+        // MITRE ATT&CK Techniques
+        printf(ANSI_BOLD_GREEN"MITRE ATT&CK Techniques\n"ANSI_RESET);
+        for (int i = 0; i < cJSON_GetArraySize(mitre_attack_techniques); i++) {
+            cJSON* technique = cJSON_GetArrayItem(mitre_attack_techniques, i);
+            cJSON* item = cJSON_GetArrayItem(technique, 0);
+            if (strcmp(item->string,"id")==0) {
+                continue;
+            };
+            break;
+
+        };
+    }
+    
 
 
 

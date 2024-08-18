@@ -1,6 +1,8 @@
 {
   "dependencies": [
     "curl",
-    "cjson"
+    "cjson", 
+    "asynch", 
+    "pthread"
   ]
 }

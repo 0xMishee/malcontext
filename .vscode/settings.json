@@ -16,6 +16,8 @@
     "vcpkg.target.useManifest": false,
     "files.associations": {
         "configuration.h": "c",
-        "cjson.h": "c"
+        "cjson.h": "c",
+        "async.h": "c",
+        "pthread.h": "c"
     }
 }

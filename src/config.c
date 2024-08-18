@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <io.h> 
 #include <cjson/cJSON.h>
+#include "ansi_colours.h"
 
 
 char* open_configuration(const char* key_file) {
@@ -15,12 +16,12 @@ char* open_configuration(const char* key_file) {
     hFile = CreateFileA(key_file, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
     if (hFile == INVALID_HANDLE_VALUE) {
-        printf("[!] Couldn't not open configuration file : %d \n", GetLastError());
+        printf(ANSI_RED"[!] Couldn't not open configuration file : %d \n"ANSI_RESET, GetLastError());
         return FALSE;
     }
 
     if (!GetFileSizeEx(hFile, (PLARGE_INTEGER)&fileSize)) {
-        printf("[!] Couldn't not get file size : %d \n", GetLastError());
+        printf(ANSI_RED"[!] Couldn't not get file size : %d \n"ANSI_RESET, GetLastError());
         CloseHandle(hFile);
         return FALSE;
     }
@@ -29,7 +30,7 @@ char* open_configuration(const char* key_file) {
     file_buffer = (char*)malloc((size_t)(fileSize + 1)); 
 
     if (file_buffer == NULL) {
-        printf("[!] Failed to allocate memory for buffer\n");
+        printf(ANSI_RED"[!] Failed to allocate memory for buffer\n"ANSI_RESET);
         free(file_buffer);
         CloseHandle(hFile);
         return FALSE;
@@ -37,7 +38,7 @@ char* open_configuration(const char* key_file) {
 
     // Read the entire file into the buffer
     if (!ReadFile(hFile, file_buffer, (DWORD)fileSize, &dwBytesRead, NULL)) {
-        printf("[!] Failed to read the entire file\n");
+        printf(ANSI_RED"[!] Failed to read the entire file\n"ANSI_RESET);
         free(file_buffer);
         CloseHandle(hFile);
         return FALSE;
@@ -56,7 +57,7 @@ char* get_api_key_value(const char* api_key_name){
         if (!json) {
             const char *error_ptr = cJSON_GetErrorPtr();
             if (error_ptr != NULL) {
-                fprintf(stderr, "[!] Could not parse json file: %s\n", error_ptr);
+                fprintf(stderr, ANSI_RED"[!] Could not parse json file: %s\n"ANSI_RESET, error_ptr);
                 cJSON_Delete(json);
                 return NULL;
             }
@@ -74,7 +75,7 @@ char* get_api_key_value(const char* api_key_name){
         } else {
             const char *error_ptr = cJSON_GetErrorPtr();
             if (error_ptr != NULL) {
-                fprintf(stderr, "[!] Could not parse json file: %s\n", error_ptr);
+                fprintf(stderr, ANSI_RED"[!] Could not parse json file: %s\n"ANSI_RESET, error_ptr);
                 cJSON_Delete(json);
                 return NULL;
             }

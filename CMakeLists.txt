@@ -15,6 +15,9 @@ include_directories(include)
 # Find and configure CURL library
 find_package(CURL CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
+find_path(ASYNCH_INCLUDE_DIRS "asynch/async.h")
+
+
 
 # Collect all source files
 file(GLOB SOURCES "src/*.c" "src/api/*.c")
@@ -31,9 +34,13 @@ add_executable(MalwareContext ${MAIN_EXECUTABLE_SOURCE} ${SOURCES})
 # Link the CURL library to the executable
 target_link_libraries(MalwareContext PRIVATE CURL::libcurl)
 target_link_libraries(MalwareContext PRIVATE cjson)
+target_include_directories(MalwareContext PRIVATE ${ASYNCH_INCLUDE_DIRS})
+
 
 # Enable testing
 enable_testing()
 add_test(NAME HelpFlagTest COMMAND Dev -h)
 add_test(NAME YaraRuleTest COMMAND Dev -y)
+add_test(NAME ContextTest COMMAND Dev -context)
+
 

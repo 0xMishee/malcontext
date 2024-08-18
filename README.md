@@ -25,6 +25,10 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
+
+Add to PATH: 
+$env:PATH += ";Your tools folder"
+
 ```
 ## Examples
 
