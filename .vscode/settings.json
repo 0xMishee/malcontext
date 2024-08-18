@@ -13,5 +13,9 @@
     },
     "vcpkg.target.installDependencies": true,
     "vcpkg.target.preferSystemLibs": false,
-    "vcpkg.target.useManifest": false
+    "vcpkg.target.useManifest": false,
+    "files.associations": {
+        "configuration.h": "c",
+        "cjson.h": "c"
+    }
 }
