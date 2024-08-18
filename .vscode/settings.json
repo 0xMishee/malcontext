@@ -18,6 +18,7 @@
         "configuration.h": "c",
         "cjson.h": "c",
         "async.h": "c",
-        "pthread.h": "c"
+        "pthread.h": "c",
+        "miscellaneous.h": "c"
     }
 }

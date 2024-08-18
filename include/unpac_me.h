@@ -6,5 +6,8 @@
 
 #include <stdio.h>
 
+char* unpac_me_sample_availability(char* api_key, char* sample_hash);
+
+
 
 #endif // UNPAC_ME_H

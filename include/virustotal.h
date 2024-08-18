@@ -8,15 +8,10 @@
 #include <windows.h>
 #include <curl/curl.h>
 
-
-typedef struct {
-    char* data;
-    size_t size;
-}api_call_response;
-
 //Implemented functions
 char* virustotal_get_behaviour_report(char* api_key, char* hash);
 char* virustotal_get_file_report(char* api_key, char* hash);
+char* virustotal_sample_availability(char* api_key, char* hash);
 
 //Waiting for love （づ￣3￣）づ╭❤️～
 void virustotal_get_ip(char ip_address,char* api_key);

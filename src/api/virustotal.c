@@ -6,33 +6,54 @@
 
 #include <cjson/cJSON.h>
 #include "virustotal.h"
+#include "miscellaneous.h"
+
 
 
 //Note to self, perhaps write a POST/GET function that can be used for all API calls..
 
-size_t write_json_callback(void *data, size_t size, size_t nmemb, void *userdata){
-    size_t real_size = size * nmemb;
-    api_call_response *api_response = (api_call_response *) userdata;
-    char *ptr = realloc(api_response->data, api_response->size + real_size + 1);
-    if (ptr == NULL) {
-        fprintf(stderr, "[!] Failed to allocate memory for response\n");
-        return 0;
-    }
-    api_response->data = ptr;
-    memcpy(&(api_response->data[api_response->size]), data, real_size);
-    api_response->size += real_size;
-    api_response->data[api_response->size] = 0;
-    return real_size;
-};
+
+// Get file availability status from VirusTotal
+char* virustotal_sample_availability(char* api_key, char* hash){
+    CURL *hnd = curl_easy_init();
+    if (!hnd) {
+        fprintf(stderr, "[!] Failed to initialize curl\n");
+        return NULL;
+    };
+
+    // Dynamically allocate memory for the response
+    api_call_response api_response;
+    api_response.data = (char *)malloc(1);
+    api_response.size = 0;
+
+    curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, write_json_callback);
+    curl_easy_setopt(hnd, CURLOPT_WRITEDATA, (void *)&api_response);
+
+    char* api_url_header = append_header_strings("https://www.virustotal.com/api/v3/files/%s", hash);
+    curl_easy_setopt(hnd, CURLOPT_URL, api_url_header);
+    
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "accept: application/json");
+
+    char* api_key_header = append_header_strings("x-apikey: %s",api_key);
+    headers = curl_slist_append(headers, api_key_header);
+
+    curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
+
+    CURLcode ret = curl_easy_perform(hnd);
+    if(ret != CURLE_OK) {
+        fprintf(stderr, "[!] Failed to perform curl request: %s\n", curl_easy_strerror(ret));
+        return NULL;
+    };
 
 
-// Appends header to string value.
-// Don't forget to free the memory after using it.
-char* append_header_strings(char* header, char* string){
-    size_t header_length = strlen(header) + strlen(string) + 1;
-    char *header_string = (char *)malloc(header_length);
-    snprintf(header_string, header_length, header, string);
-    return header_string;
+    // Cleanup
+    free(api_url_header);
+    free(api_key_header);
+    curl_easy_cleanup(hnd);
+
+    return api_response.data;
 }
 
 void virustotal_get_ip(char ip_address, char* api_key) {
