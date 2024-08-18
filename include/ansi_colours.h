@@ -17,5 +17,6 @@
 #define ANSI_BOLD_BLUE "\x1b[1;34m" // Section headers
 #define ANSI_BOLD_GREEN "\x1b[1;32m" // Sub-section headers
 #define ANSI_BOLD_YELLOW "\x1b[1;33m" // Result 
+#define ANSI_BOLD_MAGENTA "\x1b[1;35m"
 
 #endif // ANSI_COLOURS_H

@@ -4,6 +4,7 @@
 
 #include "miscellaneous.h"
 
+// Functions prints information related to "File report AIP" from VirusTotal
 void context_virustotal_file_print(char* virustotal_json_string){
 
     cJSON* json = cJSON_Parse(virustotal_json_string);
@@ -89,6 +90,8 @@ void context_virustotal_file_print(char* virustotal_json_string){
             };
         };    
 
+
+        //Tags
         printf(ANSI_BOLD_GREEN"Tags\n" ANSI_RESET);
         cJSON* tags = cJSON_GetObjectItem(attributes, "tags");
         counter = 1;
@@ -105,6 +108,7 @@ void context_virustotal_file_print(char* virustotal_json_string){
             };
         }; 
 
+        //Detect it easy
         cJSON* detect_it_easy = cJSON_GetObjectItem(attributes, "detectiteasy");
         if (detect_it_easy != NULL) {
             cJSON* filetype = cJSON_GetObjectItem(detect_it_easy, "filetype");
@@ -119,21 +123,66 @@ void context_virustotal_file_print(char* virustotal_json_string){
                 printf("\n");
             };
         }
-        
+
+        // PE Info
         cJSON* pe_info = cJSON_GetObjectItem(attributes, "pe_info");
         if (pe_info != NULL){
+            printf(ANSI_BOLD_GREEN"PE Info\n"ANSI_RESET);
             cJSON* import_list = cJSON_GetObjectItem(pe_info, "import_list");
             if (import_list != NULL){
-                for(int i = 0; i < cJSON_GetArraySize(import_list); i++){
-                    cJSON* dll = cJSON_GetArrayItem(import_list, i);
-                    
+                for(int i = 0; i < cJSON_GetArraySize(import_list); i++){ // Loops through the import_list
+                    for (int j = 0; j < cJSON_GetArraySize(cJSON_GetArrayItem(import_list, i)); j++){  // Loops through each DLL.
+                        if (j == 1){ // Second entry is all the functions
+                            cJSON* item = cJSON_GetArrayItem(cJSON_GetArrayItem(import_list, i), j); // Get the functions
+                            for (int k = 0; k < cJSON_GetArraySize(item); k++){ // Loops through the functions
+                                cJSON* function = cJSON_GetArrayItem(item, k); 
+                                printf(ANSI_BOLD_YELLOW"      %s\n"ANSI_RESET, function->valuestring);
+                                if (k == cJSON_GetArraySize(item) - 1){
+                                    printf("\n");
+                                };
+                            }
+                        } else {
+                            cJSON* item = cJSON_GetArrayItem(cJSON_GetArrayItem(import_list, i), j);
+                            printf(ANSI_BOLD_MAGENTA"%s: %s\n"ANSI_RESET, item->string, item->valuestring);
+                        }
+                    }
                 }
             }
-
+            // Sections
+            cJSON* sections = cJSON_GetObjectItem(pe_info, "sections");
+            if (sections != NULL) {
+                printf(ANSI_BOLD_GREEN"Sections\n"ANSI_RESET);
+                printf(ANSI_BOLD_MAGENTA"%-9s %-16s %-9s %-15s %-9s %s\n"ANSI_RESET, "Name", "Virtual Address", "Entropy", "Virtual Size", "Raw Size", "MD5");
+                for (int i = 0; i < cJSON_GetArraySize(sections); i++) {
+                    cJSON* section = cJSON_GetArrayItem(sections, i);
+                    printf(ANSI_BOLD_YELLOW"%-10s" ANSI_RESET, cJSON_GetObjectItem(section, "name")->valuestring);
+                    printf(ANSI_BOLD_YELLOW"%-17d" ANSI_RESET, cJSON_GetObjectItem(section, "virtual_address")->valueint);
+                    printf(ANSI_BOLD_YELLOW"%-10.2f" ANSI_RESET, cJSON_GetObjectItem(section, "entropy")->valuedouble);
+                    printf(ANSI_BOLD_YELLOW"%-16d" ANSI_RESET, cJSON_GetObjectItem(section, "virtual_size")->valueint);
+                    printf(ANSI_BOLD_YELLOW"%-10d" ANSI_RESET, cJSON_GetObjectItem(section, "raw_size")->valueint);
+                    printf(ANSI_BOLD_YELLOW"%s\n" ANSI_RESET, cJSON_GetObjectItem(section, "md5")->valuestring);
+                }
+            }   
         };
-
         printf("\n\n\n");
     };
+
+
+    // Cleanup
+    cJSON_Delete(json);
+    free(virustotal_json_string);
+    return;
+};
+
+
+
+void context_virustotal_file_behaviour_print(char* virustotal_json_string) {
+
+    cJSON* json = cJSON_Parse(virustotal_json_string);
+    if (json == NULL) {
+        printf(ANSI_RED "[!] Error parsing JSON\n" ANSI_RESET);
+        return;
+    }
 
 
 

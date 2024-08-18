@@ -1,0 +1,4775 @@
+{
+  "openapi": "3.0.0",
+  "servers": [
+    {
+      "url": "https://api.unpac.me/api/v1",
+      "description": "UnpacMe API"
+    }
+  ],
+  "info": {
+    "description": "\n# Introduction\nWelcome to the UNPACME API! All the malware unpacking and file analysis features that you are familiar with on the [unpac.me](https://www.unpac.me/) website are available through our API. You can easily integrate our unpacker into your malware analysis pipeline and begin unpacking at scale!\n\n\n# Authentication\nIn order to use the UNPACME API you must have an active UNPACME [plan](https://www.unpac.me/pricing)  that supports API access. If your active plan supports API access you can view your personal API key in your user profile. \n\n<SecurityDefinitions />\n\n# Response Structure\nWhen interacting with the UNPACME API, if the request was correctly handled, a <b>200</b> HTTP status code will be returned. The body of the response will usually be a JSON object (except for file downloads).\n\n## Response Status Codes\n\nStatus Code  | Description | Notes\n------------- | ------------- | -\n200  | OK | The request was successful\n201  | Created | The request as initiated an asynchronous command\n202 | Accepted | The asynchronous command is in progress\n400  | Bad Request | The request was somehow incorrect. This can be caused by missing arguments or arguments with wrong values.\n401 | Unauthorized | The supplied credentials, if any, are not sufficient to access the resource\n403 | Forbidden | The account does not have enough privileges to make the request.\n404 | Not Found | The requested resource is not found\n429  | Too Many Requests | The request frequency has exceeded one of the account quotas (minute, daily or monthly). Monthly quotas are reset on the 1st of the month at 00:00 UTC.\n500 | Server Error | The server could not return the representation due to an internal server error\n\n\n## Error Response\n\nIf an error has occurred while handling the request an error status code will be returend along with a JSON error message with the following properties.\n\n\nProperty  | Description\n------------- | -------------\nError  | The error type\nDescription  | A more informative message\n\n# Example Clients\n\nThe following clients can be used to interact with the UNPACME API directly and are provided as examples. These clients are community projects and are not maintained or developed by UNPACME. UNPACME makes no claim as to the safety of these clients, use at your own risk.\n\n  - [UnpacMe Python Client](https://github.com/larsborn/UnpacMeClient) (Python)\n  - [UnpacMe GO Client](https://github.com/kryptoslogic/unpacme-go) (Golang)\n  - [UnpacMe Library](https://github.com/R3MRUM/unpacme) (Python)\n  - [AssemblyLine](https://github.com/CybercentreCanada/assemblyline-service-unpacme) (Automation Service)\n  \n\n<br>\n",
+    "version": "1.8.0",
+    "title": "UnpacMe",
+    "termsOfService": "https://www.unpac.me/tos",
+    "x-logo": {
+      "url": "/unpacme_logo.png",
+      "altText": "UnpacMe logo"
+    }
+  },
+  "tags": [
+    {
+      "name": "unpack",
+      "description": "Unpacking and interacting with unpacked samples"
+    },
+    {
+      "name": "download",
+      "description": "Downloading samples"
+    },
+    {
+      "name": "search",
+      "description": "Sample corpus search"
+    },
+    {
+      "name": "yara",
+      "description": "Yara development, testing, and hunting"
+    },
+    {
+      "name": "community",
+      "description": "Shared community resources"
+    },
+    {
+      "name": "feed",
+      "description": "Sample feed access (restricted access for Feed customers only)"
+    },
+    {
+      "name": "user",
+      "description": "User operations"
+    }
+  ],
+  "paths": {
+    "/private/upload/": {
+      "post": {
+        "tags": [
+          "unpack"
+        ],
+        "summary": "Submit sample for unpacking",
+        "description": "Queues sample for unpacking",
+        "operationId": "postPrivateUpload",
+        "parameters": [
+          {
+            "name": "private",
+            "in": "query",
+            "description": "Mark sample as private (only available with plan that supports private submissions)",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data:": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\n\ndef upload_file(api_key, file_name, file_data):\n    api_key_string = 'Key %s' % api_key\n    auth_header = {'Authorization': api_key_string}\n    files = {'file': (file_name, file_data)}\n    r = requests.post('https://api.unpac.me/api/v1/private/upload', files=files, headers=auth_header)\n    if not r.ok:\n        # TODO: Add some error handling\n        return None\n    response = r.json()\n    # Return the upload ID which can be used to get\n    # the upload status\n    return response['id']\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -X POST -H \"Authorization: Key API_KEY\" -F \"file=@/path/to/file\" https://api.unpac.me/api/v1/private/upload\n"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "Unpack submission ID",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/status/{unpack_id}": {
+      "get": {
+        "tags": [
+          "unpack"
+        ],
+        "summary": "Get unpack status by ID",
+        "description": "Returns a submission status",
+        "operationId": "getPrivateUnpackStatus",
+        "parameters": [
+          {
+            "name": "unpack_id",
+            "in": "path",
+            "description": "ID of unpacking submission",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnpackStatus"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_private_status(api_key, id):\n    api_key_string = 'Key %s' % api_key\n    auth_header = {'Authorization': api_key_string}\n    url = 'https://api.unpac.me/api/v1/private/status/%s' % id\n    response = requests.get(url, headers=auth_header)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/status/ID\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/results/{unpack_id}": {
+      "get": {
+        "tags": [
+          "unpack"
+        ],
+        "summary": "Get unpack results by ID",
+        "description": "Returns unpack results",
+        "operationId": "getPrivateResults",
+        "parameters": [
+          {
+            "name": "unpack_id",
+            "in": "path",
+            "description": "ID of unpacking submission",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnpackResults"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_private_results(api_key, id):\n    api_key_string = 'Key %s' % api_key\n    auth_header = {'Authorization': api_key_string}\n    url = 'https://api.unpac.me/api/v1/private/results/%s' % id\n    response = requests.get(url, headers=auth_header)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/results/ID\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/history": {
+      "get": {
+        "tags": [
+          "unpack"
+        ],
+        "summary": "Get history",
+        "description": "Returns submission history",
+        "operationId": "getPrivateHistory",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Scroll history to cursor",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/History"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_private_history(api_key, cursor=None):\n    url = 'https://api.unpac.me/api/v1/private/history'\n    headers = {'Authorization': 'Key %s' % api_key}\n    params = {'cursor': cursor} if cursor else None\n    response = requests.get(url, headers=headers, params=params)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" \"https://api.unpac.me/api/v1/private/history?cursor=CURSOR\"\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/search/term": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Get list of valid search terms",
+        "description": "Returns a list of search terms with a description and an example",
+        "operationId": "getPrivateSearchTerm",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchTerms"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_private_search_terms(api_key):\n    url = 'https://api.unpac.me/api/v1/private/search/term'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" \"https://api.unpac.me/api/v1/private/search/term\"\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/search/term/{search_term}": {
+      "post": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Request batch download job for files",
+        "description": "Start a job to create a ZIP archive containing the requested files",
+        "operationId": "postPrivateSearchTerm",
+        "parameters": [
+          {
+            "name": "search_term",
+            "in": "path",
+            "description": "Search term",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "value": {
+                    "description": "Search value",
+                    "type": "string"
+                  },
+                  "repo_type": {
+                    "description": "Repository to search (only applicable to string searches)",
+                    "type": "string",
+                    "enum": [
+                      "goodware",
+                      "malware"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchTermResults"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef post_private_search_term(api_key, search_term, search_value, repo_type='malware'):\n    url = 'https://api.unpac.me/api/v1/private/search/term/%s' % search_term\n    headers = {'Authorization': 'Key %s' % api_key}\n    data = {'value': search_value, 'repo_type': repo_type} \n    response = requests.post(url, headers=headers, json=data)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" -X POST -H \"Content-Type: application/json\" -d '{\"value\": \"SEARCH_VALUE\", \"repo_type\": \"REPO_TYPE\"}' \"https://api.unpac.me/api/v1/private/search/term/SEARCH_TERM\"\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/yara/validate": {
+      "post": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Submit a Yara rule for validation",
+        "description": "Start a job to validate the submitted Yara rule",
+        "operationId": "postYaraValidate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rule": {
+                    "description": "Yara rule text",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "description": "Yara validation job token",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef post_yara_validate(api_key, yara_rule):\n    url = 'https://api.unpac.me/api/v1/private/yara/validate'\n    headers = {'Authorization': 'Key %s' % api_key}\n    data = {'rule': yara_rule}\n    response = requests.post(url, headers=headers, json=data)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" -X POST -H \"Content-Type: application/json\" -d '{\"rule\": \"YARA_RULE\"}' https://api.unpac.me/api/v1/private/yara/validate\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/yara/validate/{token}": {
+      "get": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Get Yara rule validation job results",
+        "description": "Returns the results from the Yara rule validation",
+        "operationId": "getYaraValidate",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "description": "Yara validation job token",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YaraValidateResults"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_yara_validate(api_key, token):\n    url = 'https://api.unpac.me/api/v1/private/yara/validate/%s' % token\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/yara/validate/TOKEN\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/yara/scans": {
+      "get": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Get Yara hunt history",
+        "description": "Returns all Yara scans initiated by the user for the last 30 days",
+        "operationId": "getYaraScans",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YaraScansHistory"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_yara_scans(api_key):\n    url = 'https://api.unpac.me/api/v1/private/yara/scans'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/yara/scans\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Submit a Yara hunt",
+        "description": "Start a job to scan UnpacMe sample corpus with submitted Yara rule",
+        "operationId": "postYaraScans",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ruleid": {
+                    "description": "Yara rule ID to use for scan",
+                    "type": "string"
+                  },
+                  "targets": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "sub",
+                        "art",
+                        "art_lab",
+                        "kg"
+                      ]
+                    },
+                    "description": "Sample repositories to scan\n  * `sub`: Submissions. Packed files (PE | PE+)\n  * `art`: Unlabeled Artifacts. Unpacked unknown files (PE | PE+)\n  * `art_lab`: Labeled Artifacts. Unpacked malware files (PE | PE+)\n  * `kg`: Goodware. Known good file (PE | PE+)\n"
+                  },
+                  "store_offsets": {
+                    "description": "Return list of matched strings and their offsets for each Yara match",
+                    "type": "boolean"
+                  },
+                  "fast": {
+                    "description": "Yara fast scan mode",
+                    "type": "boolean"
+                  },
+                  "scan_assist": {
+                    "description": "Automatic scan parameter tailoring (disable for full manual control)",
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "description": "Yara scan job token",
+                      "type": "string"
+                    },
+                    "lookback_window": {
+                      "description": "Number of weeks to scan",
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef post_yara_scans(api_key, yara_rule_id, targets, store_offsets=False, fast=False, scan_assist=True):\n    url = 'https://api.unpac.me/api/v1/private/yara/scans'\n    headers = {'Authorization': 'Key %s' % api_key}\n    data = {'ruleid': yara_rule_id, 'targets': targets, 'store_offsets': store_offsets, 'fast': fast, 'scan_assist': scan_assist}\n    response = requests.post(url, headers=headers, json=data)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" -H \"Content-Type: application/json\" -X POST -d '{\"ruleid\": \"YARA_RULE_ID\", \"targets\": [\"sub\", \"art\", \"art_lab\", \"kg\"], \"store_offsets\": false, \"fast\": false, \"scan_assist\": true}' https://api.unpac.me/api/v1/private/yara/scans\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/yara/scans/{token}": {
+      "get": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Get results from Yara hunt",
+        "description": "Returns the results from a Yara scan job",
+        "operationId": "getYaraScansID",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "description": "Yara scan job token",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YaraScanResults"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_yara_scan_results(api_key, token):\n    url = 'https://api.unpac.me/api/v1/private/yara/scans/%s' % token\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/yara/scans/TOKEN\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Share Hunt",
+        "description": "Publicly share hunt results",
+        "operationId": "putYaraScansIDShared",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "description": "Yara scan job token",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "shared": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ruleid": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef post_yara_scans(api_key, scan_token, shared):\n    url = 'https://api.unpac.me/api/v1/private/yara/scans/%s' % scan_token\n    headers = {'Authorization': 'Key %s' % api_key}\n    data = {'shared': shared}\n    response = requests.put(url, headers=headers, json=data)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -X PUT 'https://api.unpac.me/api/v1/private/yara/scans/<scan_token>' \\ -H 'Authorization: Key <api_key>' \\ -H 'Content-Type: application/json' \\ -d '{\"shared\": \"<shared_value>\"}'\n"
+          },
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/yara/rules": {
+      "get": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Get Yara rules for the user",
+        "description": "Returns as list of Yara rules",
+        "operationId": "getYaraRules",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YaraRuleList"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_yara_rules(api_key):\n    url = 'https://api.unpac.me/api/v1/private/yara/rules'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/yara/rules\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Create / Update a Yara rule",
+        "description": "Create a new yara rule, or update existing one",
+        "operationId": "postYaraRules",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rule": {
+                    "description": "Yara rule text",
+                    "type": "string"
+                  },
+                  "rule_name": {
+                    "description": "Rule name, limit 100 characters",
+                    "type": "string"
+                  },
+                  "description": {
+                    "description": "Rule description, limit 400 characters",
+                    "type": "string"
+                  },
+                  "ruleid": {
+                    "type": "string",
+                    "description": "Optional, used to update an existing rule. Not included for new rules."
+                  }
+                },
+                "required": [
+                  "rule"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "active_revision": {
+                      "type": "number"
+                    },
+                    "created": {
+                      "type": "number"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "revision": {
+                      "type": "number"
+                    },
+                    "revisions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "created": {
+                            "type": "number"
+                          },
+                          "revision": {
+                            "type": "number"
+                          },
+                          "shared": {
+                            "type": "boolean"
+                          },
+                          "validated": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "ruleid": {
+                      "type": "string"
+                    },
+                    "shared": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef post_yara_scans(api_key, yara_rule, rule_name, rule_description):\n    url = 'https://api.unpac.me/api/v1/private/yara/scans'\n    headers = {'Authorization': 'Key %s' % api_key}\n    data = {'rule': yara_rule, 'rule_name': rule_name, 'description':rule_description}\n    response = requests.post(url, headers=headers, json=data)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" -H \"Content-Type: application/json\" -X POST -d '{\"rule\": \"YARA_RULE\", \"rule_name\": \"RULE_NAME\", \"description\": \"RULE_DESCRIPTION\"}' https://api.unpac.me/api/v1/private/yara/scans\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/yara/rules/{rule_id}": {
+      "get": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Get Yara rule",
+        "description": "Returns the Yara rule",
+        "operationId": "getYaraRuleID",
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "description": "Yara rule ID",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YaraRule"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_yara_rule(api_key, rule_id):\n    url = 'https://api.unpac.me/api/v1/private/yara/rules/%s' % rule_id\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/yara/rules/RULE_ID\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/yara/rules/{rule_id}/{version}": {
+      "get": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Get Yara rule by version",
+        "description": "Returns specific Yara rule version",
+        "operationId": "getYaraRuleIDVersion",
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "description": "Yara rule ID",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "Yara rule version",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YaraRule"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_yara_rule(api_key, rule_id, version):\n    url = 'https://api.unpac.me/api/v1/private/yara/rules/%s' % (rule_id, version)\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/yara/rules/RULE_ID/RULE_VERSION\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "yara"
+        ],
+        "summary": "Share Yara rule",
+        "description": "Publicly share Yara rule",
+        "operationId": "putYaraRulesIDVersion",
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "description": "Yara rule ID",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "Yara rule version",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "shared": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YaraRuleShared"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_yara_rule(api_key, rule_id, version, shared):\n    url = 'https://api.unpac.me/api/v1/private/yara/rules/%s' % (rule_id, version)\n    headers = {'Authorization': 'Key %s' % api_key}\n    data = {'shared':shared}\n    response = requests.put(url, json=data, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -X PUT 'https://api.unpac.me/api/v1/private/yara/rules/<rule_id>/<version>' \\ -H 'Authorization: Key <api_key>' \\ -H 'Content-Type: application/json' \\ -d '{\"shared\": \"<shared_value>\"}'\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/community/yara/scans": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Get Shared Yara Hunts",
+        "description": "Returns all shared Yara hunts",
+        "operationId": "getCommunityYaraScans",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunityYaraScans"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_community_yara_scans(api_key):\n    url = 'https://api.unpac.me/api/v1/private/communityyara/scans'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/community/yara/scans\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/community/yara/rules": {
+      "get": {
+        "tags": [
+          "community"
+        ],
+        "summary": "Get shared Yara rules",
+        "description": "Returns as list of shared Yara rules",
+        "operationId": "getCommunityYaraRules",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunityYaraRuleList"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_community_yara_rules(api_key):\n    url = 'https://api.unpac.me/api/v1/private/community/yara/rules'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/community/yara/rules\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/batch/download": {
+      "post": {
+        "tags": [
+          "download"
+        ],
+        "summary": "Request batch download job for files",
+        "description": "Start a job to create a ZIP archive containing the requested files",
+        "operationId": "postPrivateBatchDownload",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "description": "Describe dlist type (hash, id)",
+                    "type": "string",
+                    "enum": [
+                      "hash",
+                      "id"
+                    ]
+                  },
+                  "dlist": {
+                    "description": "List of hashes or ids to download",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "description": "Batch job download_id token",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef request_batch_download(api_key, dlist_type='hash', dlist):\n    url = 'https://api.unpac.me/api/v1/private/batch/download'\n    headers = {'Authorization': 'Key %s' % api_key}\n    data = {'type': dlist_type, 'dlist': dlist}\n    response = requests.post(url, headers=headers, json=data)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" -H \"Content-Type: application/json\" -X POST -d '{\"type\": DLIST_TYPE, \"dlist\": [HASH1, HASH2, HASH3]}' https://api.unpac.me/api/v1/private/batch/download\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/batch/download/{download_id}": {
+      "get": {
+        "tags": [
+          "download"
+        ],
+        "summary": "Get direct download URL for batch download",
+        "description": "Returns a direct download URL for the batch download_id",
+        "operationId": "getPrivateBatchDownload",
+        "parameters": [
+          {
+            "name": "download_id",
+            "in": "path",
+            "description": "Download ID returned by batch download request",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchDownloadUrl"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_batch_download_url(api_key, download_id):\n    url = 'https://api.unpac.me/api/v1/private/batch/download/%s' % download_id\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/batch/download/DOWNLOAD_ID\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/feed/unpacked": {
+      "get": {
+        "tags": [
+          "feed"
+        ],
+        "summary": "Get full unpacked sample feed",
+        "description": "Returns full feed of unpacked samples",
+        "operationId": "getPrivateFeed",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Scroll feed to cursor",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateFeed"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_unpacked_sample_feed(api_key, cursor=None):\n    url = 'https://api.unpac.me/api/v1/private/feed/unpacked'\n    headers = {'Authorization': 'Key %s' % api_key}\n    params = {'cursor': cursor} if cursor else None\n    response = requests.get(url, headers=headers, params=params)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" \"https://api.unpac.me/api/v1/private/feed/unpacked?cursor=CURSOR\"\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/feed/unpacked/yara": {
+      "get": {
+        "tags": [
+          "feed"
+        ],
+        "summary": "Get list of yara tags in feed",
+        "description": "Returns list of all yara tags available for the feed",
+        "operationId": "getPrivateFeedYaraTags",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Scroll feed to cursor",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateFeedYaraTags"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_unpacked_sample_feed_yara(api_key):\n    url = 'https://api.unpac.me/api/v1/private/feed/unpacked/yara'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" \"https://api.unpac.me/api/v1/private/feed/unpacked/yara\"\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/feed/unpacked/yara/{yara_rule}": {
+      "get": {
+        "tags": [
+          "feed"
+        ],
+        "summary": "Get full unpacked sample feed filtered by yara rule",
+        "description": "Returns full feed of unpacked samples filtered by the yara rule",
+        "operationId": "getPrivateFeedYaraFiltered",
+        "parameters": [
+          {
+            "name": "yara_rule",
+            "in": "path",
+            "description": "Yara rule name used to filter feed",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Scroll feed to cursor",
+            "required": false,
+            "style": "form",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrivateFeedFiltered"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_unpacked_sample_feed_filtered(api_key, yara_rule, cursor=None):\n    url = 'https://api.unpac.me/api/v1/private/feed/unpacked/yara/%s' % yara_rule\n    headers = {'Authorization': 'Key %s' % api_key}\n    params = {'cursor': cursor} if cursor else None\n    response = requests.get(url, headers=headers, params=params)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" \"https://api.unpac.me/api/v1/private/feed/unpacked/yara/YARA_RULE?cursor=CURSOR\"\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/feed/files": {
+      "get": {
+        "tags": [
+          "feed"
+        ],
+        "summary": "Get rolling 24h bulk sample files",
+        "description": "Returns direct download links for feed of unpacked samples",
+        "operationId": "getPrivateFeedFiles",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkSampleFeed"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_24h_bulk_sample_files(api_key):\n    url = 'https://api.unpac.me/api/v1/private/feed/files'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/feed/files\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    },
+    "/private/user/access": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get user settings",
+        "description": "Returns user settings",
+        "operationId": "getPrivateUserAccess",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserAccess"
+                }
+              }
+            }
+          }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "python",
+            "source": "import requests\n\ndef get_24h_bulk_sample_files(api_key):\n    url = 'https://api.unpac.me/api/v1/private/user/access'\n    headers = {'Authorization': 'Key %s' % api_key}\n    response = requests.get(url, headers=headers)\n    if response.status_code == 200:\n        return response.json()\n    else:\n        return None\n"
+          },
+          {
+            "lang": "shell",
+            "source": "curl -H \"Authorization: Key API_KEY\" https://api.unpac.me/api/v1/private/user/access\n"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "status": {
+        "description": "Job status",
+        "allOf": [
+          {
+            "type": "string",
+            "description": "Unpacking submission state order: \n * `validating` - Validating the uploaded file. The results list will not be populated at this poin\n * `queued` - The file has been queued for analysis. Depending on your account status analysis may be delayed during heavy usage. The results list will not be populated at this point.\n * `analyzing` - The file is being analyzed before the unpacking processor is selected. The results list will not be populated at this point.\n * `unpack_pending` - The file has been analyzed and an unpacker selected. The file is now queued for unpacking. Depending on your account status unpacking may be delayed during heavy usage. The results list will contain the analysis results for the submitting file but it will not contain any unpacked files.\n * `unpacking` - The file is now being unpacked. The results list will contain the analysis results for the submitting file but it will not contain any unpacked files.\n * `unpack-requeue` - Unpacking has been delayed due to heavy load. The results list will contain the analysis results for the submitting file but it will not contain any unpacked files.\n * `unpacked` -   The file has been unpacked. The results list will contain the analysis results for the submitting file but it will not contain any unpacked files.\n * `post_analysis` -   The file has been unpacked and the unpacked files have been submitted for analysis. The results list will contain the analysis results for the submitting file and may begin to contain results for some of the unpacked files.\n * `complete` -   The unpacking and analysis process has completed. The results list will contain the analysis results for the submitting file and all unpacked files.\n * `fail` -   The unpacking and analysis process has completed with errors. The results list may contain data but there is no guarantee.\n",
+            "enum": [
+              "validating",
+              "queued",
+              "analyzing",
+              "unpack_pending",
+              "unpacking",
+              "unpack-requeue",
+              "unpacked",
+              "post_analysis",
+              "complete",
+              "fail"
+            ]
+          }
+        ]
+      },
+      "section": {
+        "description": "PE section",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "Characteristics": {
+                "description": "Section characteristics",
+                "type": "integer"
+              },
+              "Entropy": {
+                "description": "Section entropy",
+                "type": "number",
+                "format": "float"
+              },
+              "MD5": {
+                "description": "MD5 of section data",
+                "type": "string"
+              },
+              "Name": {
+                "description": "Section name",
+                "type": "string"
+              },
+              "Name_Hex": {
+                "description": "Hex encoded section name",
+                "type": "string"
+              },
+              "NumberOfLinenumbers": {
+                "description": "Number of line numbers",
+                "type": "integer"
+              },
+              "NumberOfRelocations": {
+                "description": "Number of relocations",
+                "type": "integer"
+              },
+              "PointerToLinenumbers": {
+                "description": "Pointer to line numbers",
+                "type": "integer"
+              },
+              "PointerToRawData": {
+                "description": "Pointer to raw data",
+                "type": "integer"
+              },
+              "PointerToRelocations": {
+                "description": "Pointer to relocations",
+                "type": "integer"
+              },
+              "SHA1": {
+                "description": "SHA1 of section data",
+                "type": "string"
+              },
+              "SHA256": {
+                "description": "SHA256 of section data",
+                "type": "string"
+              },
+              "SizeOfRawData": {
+                "description": "Size of raw data",
+                "type": "integer"
+              },
+              "VirtualAddress": {
+                "description": "Virtual address of section",
+                "type": "integer"
+              },
+              "VirtualSize": {
+                "description": "Virtual size of section",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "Characteristics",
+              "Entropy",
+              "MD5",
+              "Name",
+              "Name_Hex",
+              "NumberOfLinenumbers",
+              "NumberOfRelocations",
+              "PointerToLinenumbers",
+              "PointerToRawData",
+              "PointerToRelocations",
+              "SHA1",
+              "SHA256",
+              "SizeOfRawData",
+              "VirtualAddress",
+              "VirtualSize"
+            ]
+          }
+        ]
+      },
+      "detectit_entity": {
+        "description": "DetectIt Entity",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "name": {
+                "description": "Detection name",
+                "type": "string"
+              },
+              "options": {
+                "description": "Detection options",
+                "type": "string"
+              },
+              "string": {
+                "description": "Detection description",
+                "type": "string"
+              },
+              "type": {
+                "description": "Detection type",
+                "type": "string"
+              },
+              "version": {
+                "description": "DetectIt version",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "options",
+              "string",
+              "type",
+              "version"
+            ]
+          }
+        ]
+      },
+      "malware_id": {
+        "description": "Malware ID match",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "confidence": {
+                "description": "Match confidence",
+                "type": "string"
+              },
+              "name": {
+                "description": "Match name",
+                "type": "string"
+              },
+              "reference": {
+                "description": "Match reference",
+                "type": "string"
+              },
+              "source": {
+                "description": "Match source",
+                "type": "string"
+              },
+              "source_name": {
+                "description": "Name of the source",
+                "type": "string"
+              },
+              "references": {
+                "description": "List of references",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "author": {
+                      "description": "Author of the reference",
+                      "type": "string"
+                    },
+                    "reference": {
+                      "description": "Reference URL",
+                      "type": "string"
+                    },
+                    "title": {
+                      "description": "Title of the reference",
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "malware_family": {
+                "description": "Malware family",
+                "type": "string"
+              }
+            },
+            "required": [
+              "confidence",
+              "name",
+              "reference",
+              "sourc"
+            ]
+          }
+        ]
+      },
+      "malware_id_short": {
+        "description": "Malware ID match high level info",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "match": {
+                "description": "Match name",
+                "type": "string"
+              },
+              "type": {
+                "description": "Match source",
+                "type": "string"
+              }
+            },
+            "required": [
+              "match",
+              "type"
+            ]
+          }
+        ]
+      },
+      "sourceintel_source": {
+        "description": "SourceIntel Source Entry",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "reference": {
+                "description": "Reference for source",
+                "type": "string"
+              },
+              "weight": {
+                "description": "Source trust",
+                "type": "number"
+              },
+              "tags": {
+                "description": "Tags for source",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Tag value"
+                }
+              },
+              "created": {
+                "description": "Source creation time",
+                "type": "number"
+              },
+              "content": {
+                "description": "Information from source",
+                "type": "string"
+              },
+              "source": {
+                "description": "Source name",
+                "type": "string"
+              },
+              "hashes": {
+                "description": "List of sample hashes associated with source",
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Hash value"
+                }
+              },
+              "type": {
+                "description": "Source collection type",
+                "type": "string"
+              }
+            },
+            "required": [
+              "reference",
+              "weight",
+              "tags",
+              "created",
+              "content",
+              "source",
+              "hashes",
+              "type"
+            ]
+          }
+        ]
+      },
+      "rich_header": {
+        "description": "PE rich header",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "Build": {
+                "description": "Build",
+                "type": "string"
+              },
+              "BuildId": {
+                "description": "Build ID",
+                "type": "integer"
+              },
+              "Count": {
+                "description": "Count",
+                "type": "integer"
+              },
+              "ProdId": {
+                "description": "Product ID",
+                "type": "integer"
+              },
+              "Product": {
+                "description": "Product",
+                "type": "string"
+              }
+            },
+            "required": [
+              "Build",
+              "BuildId",
+              "Count",
+              "ProdId",
+              "Product"
+            ]
+          }
+        ]
+      },
+      "resource": {
+        "description": "PE file resource",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "codepage": {
+                "description": "Codepage",
+                "type": "integer"
+              },
+              "lang": {
+                "description": "Language",
+                "type": "string"
+              },
+              "magic_type": {
+                "description": "Resource type",
+                "type": "string"
+              },
+              "offset": {
+                "description": "Resource offset",
+                "type": "integer"
+              },
+              "size": {
+                "description": "Resource size",
+                "type": "integer"
+              },
+              "sublang": {
+                "description": "Sub-Language",
+                "type": "string"
+              }
+            },
+            "required": [
+              "codepage",
+              "lang",
+              "magic_type",
+              "offset",
+              "size",
+              "sublang"
+            ]
+          }
+        ]
+      },
+      "resource_entry": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/resource"
+            }
+          },
+          "name": {
+            "description": "Resource name",
+            "type": "string"
+          }
+        }
+      },
+      "resource_entity": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/resource_entry"
+            }
+          },
+          "type": {
+            "description": "Resource type",
+            "type": "string"
+          }
+        }
+      },
+      "dotnet_stream": {
+        "type": "object",
+        "properties": {
+          "chi2": {
+            "type": "number",
+            "description": "CHI Hash"
+          },
+          "offset": {
+            "type": "number",
+            "description": "Stream offset in binary"
+          },
+          "entropy": {
+            "type": "number",
+            "description": "Stream entropy"
+          },
+          "name": {
+            "type": "string",
+            "description": "Stream name"
+          },
+          "md5": {
+            "type": "string",
+            "description": "MD5 hash of stream"
+          }
+        }
+      },
+      "avdetect": {
+        "type": "object",
+        "properties": {
+          "engine": {
+            "type": "string",
+            "description": "AV engine"
+          },
+          "scan_date": {
+            "type": "number",
+            "description": "Detection time"
+          },
+          "detect": {
+            "type": "string",
+            "description": "AV detection name"
+          }
+        }
+      },
+      "deepmatch_entity": {
+        "description": "DeepMatch entity",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "average": {
+                "description": "Percent average match",
+                "type": "number",
+                "format": "float"
+              },
+              "label": {
+                "description": "Match name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "average",
+              "label"
+            ]
+          }
+        ]
+      },
+      "export": {
+        "description": "API export",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "address": {
+                "description": "Export address",
+                "type": "integer"
+              },
+              "name": {
+                "description": "Export name",
+                "type": "string"
+              },
+              "ordinal": {
+                "description": "Export ordinal",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "address",
+              "name",
+              "ordinal"
+            ]
+          }
+        ]
+      },
+      "function": {
+        "description": "API function",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "import_by_ordinal": {
+                "description": "API imported by ordinal",
+                "type": "boolean"
+              },
+              "name": {
+                "description": "API name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "import_by_ordinal",
+              "name"
+            ]
+          }
+        ]
+      },
+      "import_entity": {
+        "description": "PE file import entity",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "library": {
+                "description": "Library name",
+                "type": "string"
+              },
+              "functions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/function"
+                }
+              }
+            },
+            "required": [
+              "library",
+              "functions"
+            ]
+          }
+        ]
+      },
+      "capa": {
+        "description": "CAPA malware behaviour",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "description": "CAPA",
+                "type": "string"
+              },
+              "enrichment": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "description": "CAPA runtime status",
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "description": "Sample SHA256 hash",
+                    "type": "string"
+                  },
+                  "version": {
+                    "description": "CAPA version",
+                    "type": "string"
+                  },
+                  "rules": {
+                    "type": "array",
+                    "description": "CAPA rule matches on sample",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "attack": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "subtechnique": {
+                                "description": "MITRE ATT&CK subtechnique",
+                                "type": "string"
+                              },
+                              "technique": {
+                                "description": "MITRE ATT&CK technique",
+                                "type": "string"
+                              },
+                              "id": {
+                                "description": "MITRE ATT&CK ID",
+                                "type": "string"
+                              },
+                              "tactic": {
+                                "description": "MITRE ATT&CK tactic",
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "namespace": {
+                          "description": "CAPA behaviour namespace",
+                          "type": "string"
+                        },
+                        "name": {
+                          "description": "CAPA behaviour name",
+                          "type": "string"
+                        },
+                        "mbc": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "objective": {
+                                "description": "Malware Behavior Catalog (MBC) objective",
+                                "type": "string"
+                              },
+                              "id": {
+                                "description": "Malware Behavior Catalog (MBC) ID",
+                                "type": "string"
+                              },
+                              "behavior": {
+                                "description": "Malware Behavior Catalog (MBC) behaviour",
+                                "type": "string"
+                              },
+                              "method": {
+                                "description": "Malware Behavior Catalog (MBC) method",
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "goresym_function": {
+        "type": "object",
+        "properties": {
+          "Start": {
+            "type": "number",
+            "description": "Function offset start"
+          },
+          "FullName": {
+            "type": "string",
+            "description": "Function name"
+          },
+          "End": {
+            "type": "number",
+            "description": "Function offset end"
+          },
+          "PackageName": {
+            "type": "string",
+            "description": "Function package name"
+          }
+        }
+      },
+      "goresym_interface": {
+        "type": "object",
+        "properties": {
+          "VA": {
+            "type": "number"
+          },
+          "Kind": {
+            "type": "string"
+          },
+          "Str": {
+            "type": "string"
+          },
+          "Reconstructed": {
+            "type": "string"
+          },
+          "CReconstructed": {
+            "type": "string"
+          },
+          "CStr": {
+            "type": "string"
+          }
+        }
+      },
+      "goresym_setting": {
+        "type": "object",
+        "properties": {
+          "Value": {
+            "type": "string"
+          },
+          "Key": {
+            "type": "string"
+          }
+        }
+      },
+      "result": {
+        "description": "Unpack result",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "hashes": {
+                "type": "object",
+                "properties": {
+                  "md5": {
+                    "description": "MD5 hash of sample",
+                    "type": "string"
+                  },
+                  "sha1": {
+                    "description": "SHA1 hash of sample",
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "description": "SHA256 hash of sample",
+                    "type": "string"
+                  },
+                  "capa.featurehash": {
+                    "description": "Hash of CAPA malware behaviour used for hunting similar behaviour",
+                    "type": "string"
+                  },
+                  "inflated_sha256": {
+                    "description": "SHA256 hash of parent sample before defaltion for analysis",
+                    "type": "string"
+                  },
+                  "zip_sha256": {
+                    "description": "SHA256 hash of ZIP file used to submit parant sample",
+                    "type": "string"
+                  },
+                  "dhash": {
+                    "description": "Sample icon dhash",
+                    "type": "string"
+                  }
+                }
+              },
+              "analysis": {
+                "type": "object",
+                "properties": {
+                  "exports": {
+                    "type": "object",
+                    "properties": {
+                      "count": {
+                        "description": "Export count",
+                        "type": "integer"
+                      },
+                      "functions": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/export"
+                        }
+                      }
+                    }
+                  },
+                  "imports": {
+                    "type": "object",
+                    "properties": {
+                      "count": {
+                        "description": "Import count",
+                        "type": "integer"
+                      },
+                      "entities": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/import_entity"
+                        }
+                      }
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "properties": {
+                      "Characteristics": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "description": "PE file characteristics"
+                        }
+                      },
+                      "Checksum": {
+                        "description": "PE file checksum",
+                        "type": "integer"
+                      },
+                      "Compile Time": {
+                        "description": "PE file compile time",
+                        "type": "string"
+                      },
+                      "Contains Compressed Data": {
+                        "description": "PE file contains compressed data",
+                        "type": "boolean"
+                      },
+                      "EP Bytes": {
+                        "description": "Entry point first 16 bytes",
+                        "type": "string"
+                      },
+                      "Entry Point": {
+                        "description": "PE file entry point",
+                        "type": "integer"
+                      },
+                      "Image Base": {
+                        "description": "PE file image base",
+                        "type": "integer"
+                      },
+                      "Linker Version": {
+                        "description": "PE file linker version",
+                        "type": "string"
+                      },
+                      "PDB Path": {
+                        "description": "PE file program database file path",
+                        "type": "string"
+                      },
+                      "Sections": {
+                        "description": "Number of sections",
+                        "type": "integer"
+                      },
+                      "Signature": {
+                        "description": "PE file signature",
+                        "type": "integer"
+                      },
+                      "Size": {
+                        "description": "PE file size",
+                        "type": "integer"
+                      },
+                      "Subsystem": {
+                        "description": "PE file subsystem",
+                        "type": "string"
+                      },
+                      "Type": {
+                        "description": "PE file type",
+                        "type": "string"
+                      },
+                      "VersionInfo": {
+                        "type": "object",
+                        "properties": {
+                          "StringInfo": {
+                            "type": "object",
+                            "properties": {
+                              "CompanyName": {
+                                "description": "Company name",
+                                "type": "string"
+                              },
+                              "FileDescription": {
+                                "description": "File description",
+                                "type": "string"
+                              },
+                              "FileVersion": {
+                                "description": "File version",
+                                "type": "string"
+                              },
+                              "LegalCopyright": {
+                                "description": "Legal copyright",
+                                "type": "string"
+                              },
+                              "OriginalFilename": {
+                                "description": "Original file name",
+                                "type": "string"
+                              },
+                              "ProductName": {
+                                "description": "Product name",
+                                "type": "string"
+                              },
+                              "ProductVersion": {
+                                "description": "Product version",
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "VarInfo": {
+                            "type": "object",
+                            "properties": {
+                              "LangID": {
+                                "description": "Language ID",
+                                "type": "string"
+                              },
+                              "Translation": {
+                                "description": "Translation",
+                                "type": "string"
+                              },
+                              "charsetID": {
+                                "description": "Character set ID",
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "resources": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/resource_entity"
+                    }
+                  },
+                  "rich_headers": {
+                    "type": "object",
+                    "properties": {
+                      "Checksum": {
+                        "description": "Rich header checksum",
+                        "type": "string"
+                      },
+                      "Entries": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/rich_header"
+                        }
+                      }
+                    }
+                  },
+                  "sections": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/section"
+                    }
+                  }
+                }
+              },
+              "deepmatch": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/deepmatch_entity"
+                }
+              },
+              "detectit": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/detectit_entity"
+                }
+              },
+              "malware_id": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/malware_id"
+                }
+              },
+              "malware_id_restricted": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/malware_id"
+                }
+              },
+              "sourceintel": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/sourceintel_source"
+                }
+              },
+              "dotnet_analysis": {
+                "type": "object",
+                "properties": {
+                  "hashes": {
+                    "type": "object",
+                    "properties": {
+                      "created": {
+                        "description": "Extraction time",
+                        "type": "number"
+                      },
+                      "version": {
+                        "description": "Extractor version",
+                        "type": "string"
+                      },
+                      "sha256": {
+                        "description": "SHA256 hash of sample",
+                        "type": "string"
+                      },
+                      "data": {
+                        "description": "Extracted .NET information",
+                        "type": "object",
+                        "properties": {
+                          "assembly": {
+                            "type": "object",
+                            "properties": {
+                              "guids": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": ".NET GUID"
+                                }
+                              },
+                              "streams": {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/dotnet_stream"
+                                }
+                              },
+                              "mvid": {
+                                "type": "string",
+                                "description": ".NET mvid"
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "properties": {
+                                  "reserved": {
+                                    "type": "number",
+                                    "description": "Metadata reserved"
+                                  },
+                                  "stream_count": {
+                                    "type": "number",
+                                    "description": "Number or streams"
+                                  },
+                                  "major_version": {
+                                    "type": "number",
+                                    "description": "Major version"
+                                  },
+                                  "minor_version": {
+                                    "type": "number",
+                                    "description": "Minor version"
+                                  },
+                                  "version": {
+                                    "type": "string",
+                                    "description": "Full version"
+                                  },
+                                  "flags": {
+                                    "type": "number",
+                                    "description": "Number of flags"
+                                  },
+                                  "signature": {
+                                    "type": "string",
+                                    "description": "Signature hash"
+                                  },
+                                  "version_size": {
+                                    "type": "number",
+                                    "description": "Version size"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "cor20_header": {
+                            "type": "object",
+                            "properties": {
+                              "managed_native_header": {
+                                "type": "object",
+                                "properties": {
+                                  "virtual_address": {
+                                    "type": "number",
+                                    "description": "Native header virutal address"
+                                  },
+                                  "size": {
+                                    "type": "number",
+                                    "description": "Native header size"
+                                  }
+                                }
+                              },
+                              "cb": {
+                                "type": "number"
+                              },
+                              "major_version": {
+                                "type": "number",
+                                "description": "Major version"
+                              },
+                              "code_manager_table": {
+                                "type": "object",
+                                "properties": {
+                                  "virtual_address": {
+                                    "type": "number",
+                                    "description": "Code manager table virutal address"
+                                  },
+                                  "size": {
+                                    "type": "number",
+                                    "description": "Code manager table size"
+                                  }
+                                }
+                              },
+                              "export_address_table_jumps": {
+                                "type": "object",
+                                "properties": {
+                                  "virtual_address": {
+                                    "type": "number",
+                                    "description": "Export table virutal address"
+                                  },
+                                  "size": {
+                                    "type": "number",
+                                    "description": "Export table size"
+                                  }
+                                }
+                              },
+                              "minor_version": {
+                                "type": "number",
+                                "description": "Minor version"
+                              },
+                              "entrypoint": {
+                                "type": "number",
+                                "description": "Entrypoint"
+                              },
+                              "vtable_fixups": {
+                                "type": "object",
+                                "properties": {
+                                  "virtual_address": {
+                                    "type": "number",
+                                    "description": "Vtable fixups virutal address"
+                                  },
+                                  "size": {
+                                    "type": "number",
+                                    "description": "Vtable fixups size"
+                                  }
+                                }
+                              },
+                              "strong_name_signature": {
+                                "type": "object",
+                                "properties": {
+                                  "virtual_address": {
+                                    "type": "number",
+                                    "description": "Strong name signature virutal address"
+                                  },
+                                  "size": {
+                                    "type": "number",
+                                    "description": "Strong name signature size"
+                                  }
+                                }
+                              },
+                              "flags": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": "Flag name"
+                                }
+                              },
+                              "resources": {
+                                "type": "object",
+                                "properties": {
+                                  "virtual_address": {
+                                    "type": "number",
+                                    "description": "Resources virutal address"
+                                  },
+                                  "size": {
+                                    "type": "number",
+                                    "description": "Resources size"
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "type": "object",
+                                "properties": {
+                                  "virtual_address": {
+                                    "type": "number",
+                                    "description": "Metadata virutal address"
+                                  },
+                                  "size": {
+                                    "type": "number",
+                                    "description": "Metadata size"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "goresym": {
+                "type": "object",
+                "properties": {
+                  "created": {
+                    "type": "number",
+                    "description": "Analysis time"
+                  },
+                  "version": {
+                    "type": "number",
+                    "description": "GoReSym version"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "description": "SHA256 hash of sample"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "Files": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "description": "File name"
+                        }
+                      },
+                      "TabMeta": {
+                        "type": "object",
+                        "properties": {
+                          "VA": {
+                            "type": "number"
+                          },
+                          "Endianess": {
+                            "type": "string"
+                          },
+                          "PointerSize": {
+                            "type": "number"
+                          },
+                          "CpuQuantumStr": {
+                            "type": "string"
+                          },
+                          "Version": {
+                            "type": "string"
+                          },
+                          "CpuQuantum": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "StdFunctions": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/goresym_function"
+                        }
+                      },
+                      "ModuleMeta": {
+                        "type": "object",
+                        "properties": {
+                          "VA": {
+                            "type": "number"
+                          },
+                          "ETypes": {
+                            "type": "number"
+                          },
+                          "Typelinks": {
+                            "type": "object",
+                            "properties": {
+                              "Capacity": {
+                                "type": "number"
+                              },
+                              "Data": {
+                                "type": "number"
+                              },
+                              "Len": {
+                                "type": "number"
+                              }
+                            }
+                          },
+                          "ITablinks": {
+                            "type": "object",
+                            "properties": {
+                              "Capacity": {
+                                "type": "number"
+                              },
+                              "Data": {
+                                "type": "number"
+                              },
+                              "Len": {
+                                "type": "number"
+                              }
+                            }
+                          },
+                          "TextVA": {
+                            "type": "number"
+                          },
+                          "Types": {
+                            "type": "number"
+                          },
+                          "LegacyTypes": {
+                            "type": "object",
+                            "properties": {
+                              "Capacity": {
+                                "type": "number"
+                              },
+                              "Data": {
+                                "type": "number"
+                              },
+                              "Len": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "BuildId": {
+                        "type": "string"
+                      },
+                      "Interfaces": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/goresym_interface"
+                        }
+                      },
+                      "UserFunctions": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/goresym_function"
+                        }
+                      },
+                      "Version": {
+                        "type": "string"
+                      },
+                      "Arch": {
+                        "type": "string"
+                      },
+                      "BuildInfo": {
+                        "type": "object",
+                        "properties": {
+                          "Path": {
+                            "type": "string"
+                          },
+                          "GoVersion": {
+                            "type": "string"
+                          },
+                          "Main": {
+                            "type": "object",
+                            "properties": {
+                              "Path": {
+                                "type": "string"
+                              },
+                              "Sum": {
+                                "type": "string"
+                              },
+                              "Version": {
+                                "type": "string"
+                              },
+                              "Replace": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "Deps": {
+                            "type": "string"
+                          },
+                          "Settings": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/goresym_setting"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "avdetects": {
+                "type": "object",
+                "properties": {
+                  "detect_count": {
+                    "type": "number",
+                    "description": "Number of detections"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "description": "SHA256 hash of sample"
+                  },
+                  "detects": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/avdetect"
+                    }
+                  }
+                }
+              },
+              "strings": {
+                "type": "object",
+                "properties": {
+                  "ascii": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Ascii string"
+                    }
+                  },
+                  "stack": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Stack string"
+                    }
+                  },
+                  "wide": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "description": "Wide string"
+                    }
+                  }
+                }
+              },
+              "urls": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "URL string"
+                }
+              },
+              "enrichments": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/capa"
+                }
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "config_date": {
+                    "type": "number",
+                    "description": "The date of the configuration extraction"
+                  },
+                  "extractor_version": {
+                    "type": "integer",
+                    "description": "The version of the extractor"
+                  },
+                  "pe_timestamp": {
+                    "type": "number",
+                    "description": "The PE timestamp"
+                  },
+                  "rule_name": {
+                    "type": "string",
+                    "description": "The name of the rule that triggered the config extraction"
+                  },
+                  "rule_version": {
+                    "type": "integer",
+                    "description": "The version of the rule that triggered the config extraction"
+                  },
+                  "config": {
+                    "type": "object",
+                    "properties": {
+                      "c2s": {
+                        "type": "array",
+                        "description": "The list of C2s",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "description": "The type of the C2 (url, domain, ip)",
+                              "enum": [
+                                "url",
+                                "domain",
+                                "ip"
+                              ]
+                            },
+                            "port": {
+                              "type": "string",
+                              "description": "The port of the C2"
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "The value of the C2"
+                            }
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "value"
+                        ]
+                      },
+                      "decrypted_strings": {
+                        "type": "array",
+                        "description": "The list of decrypted strings",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the malware configuration"
+                      },
+                      "settings": {
+                        "type": "array",
+                        "description": "The list of settings unique to the malware",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "description": "The type of the setting (string, int, hex, list)",
+                              "enum": [
+                                "string",
+                                "int",
+                                "hex",
+                                "list"
+                              ]
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "The name of the setting"
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "The value of the setting"
+                            }
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "name",
+                          "value"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "c2s",
+                      "decrypted_strings",
+                      "name",
+                      "settings"
+                    ]
+                  }
+                }
+              },
+              "icon": {
+                "type": "string",
+                "description": "URL for extracted file icon image"
+              }
+            },
+            "required": [
+              "hashes",
+              "analysis"
+            ]
+          }
+        ]
+      },
+      "feed_entity": {
+        "type": "object",
+        "properties": {
+          "autoit": {
+            "description": "AutoIt detected",
+            "type": "boolean"
+          },
+          "children": {
+            "description": "Number of unpacked children",
+            "type": "integer"
+          },
+          "created": {
+            "description": "Submission timestamp",
+            "type": "number",
+            "format": "float"
+          },
+          "deepmatch": {
+            "description": "DeepMatch matches",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/deepmatch_entity"
+            }
+          },
+          "downloader": {
+            "description": "Downloader detected",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Unpacking submission ID",
+            "type": "string"
+          },
+          "malwareid": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/malware_id_short"
+            }
+          },
+          "malwareid_restricted": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/malware_id_short"
+            }
+          },
+          "sha256": {
+            "description": "Parent submission SHA256",
+            "type": "string"
+          },
+          "status": {
+            "description": "Unpacking status",
+            "type": "string"
+          },
+          "configs": {
+            "description": "Indicates whether the file contains malware configuration data.",
+            "type": "boolean"
+          },
+          "Signed": {
+            "description": "Indicates whether the file is signed.",
+            "type": "boolean"
+          },
+          "Corrupt": {
+            "description": "Indicates whether the file is corrupt.",
+            "type": "boolean"
+          },
+          "Type": {
+            "description": "The PE file type.",
+            "type": "string"
+          },
+          "Size": {
+            "description": "The size of the file.",
+            "type": "string"
+          },
+          "submission_sha256": {
+            "description": "The SHA256 hash of the submitted file. May differ from the parent file SHA256 if the file was inflated or compressed.",
+            "type": "string"
+          },
+          "Compile Time": {
+            "description": "The date and time the file was compiled.",
+            "type": "string"
+          }
+        }
+      },
+      "SearchTerms": {
+        "type": "object",
+        "properties": {
+          "search_terms": {
+            "description": "List of valid search terms",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "term": {
+                  "type": "string",
+                  "description": "Search term"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Search term type",
+                  "enum": [
+                    "quoted",
+                    "none"
+                  ]
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Description of the search term"
+                },
+                "example": {
+                  "type": "string",
+                  "description": "Example search using the term"
+                }
+              }
+            }
+          }
+        }
+      },
+      "search_results_malware_id_entity": {
+        "type": "object",
+        "properties": {
+          "classification_type": {
+            "type": "string",
+            "description": "The classification type of the malware."
+          },
+          "malware_family": {
+            "type": "string",
+            "description": "The family of the malware."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the malware."
+          },
+          "public_name": {
+            "type": "string",
+            "description": "The public name of the malware."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "The SHA256 hash of the sample."
+          },
+          "threat_type": {
+            "type": "string",
+            "description": "The type of threat the malware poses."
+          },
+          "type": {
+            "type": "string",
+            "description": "Source of the malware identification."
+          }
+        }
+      },
+      "search_results_analysis_entity": {
+        "type": "object",
+        "properties": {
+          "Compile Time": {
+            "type": "string",
+            "description": "The date and time the file was compiled."
+          },
+          "Corrupt": {
+            "type": "boolean",
+            "description": "Indicates whether the file is corrupt or not."
+          },
+          "Signed": {
+            "type": "boolean",
+            "description": "Indicates whether the file is signed or not."
+          },
+          "Size": {
+            "type": "string",
+            "description": "The size of the file in bytes."
+          },
+          "Type": {
+            "type": "string",
+            "description": "The type of file."
+          },
+          "id": {
+            "type": "string",
+            "description": "The unique identifier of the analysis."
+          },
+          "submission_sha256": {
+            "type": "string",
+            "description": "The SHA256 hash of the analysis parent file."
+          }
+        }
+      },
+      "search_results_entity": {
+        "type": "object",
+        "properties": {
+          "Compile Time": {
+            "type": "string",
+            "description": "The date and time the file was compiled."
+          },
+          "Corrupt": {
+            "type": "boolean",
+            "description": "Indicates whether the file is corrupt or not."
+          },
+          "Size": {
+            "type": "string",
+            "description": "The size of the file in bytes."
+          },
+          "Type": {
+            "type": "string",
+            "description": "The type of file."
+          },
+          "analysis": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/search_results_analysis_entity"
+            },
+            "description": "An array analsysis containing the matched sample"
+          },
+          "config": {
+            "type": "boolean",
+            "description": "Indicates whether the file has an associated malware configuration or not."
+          },
+          "first_seen": {
+            "type": "number",
+            "description": "The date and time the file was first seen."
+          },
+          "last_seen": {
+            "type": "number",
+            "description": "The date and time the file was last seen."
+          },
+          "malwareid": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/search_results_malware_id_entity"
+            },
+            "description": "An array of malware ID matches."
+          },
+          "matched_analysis": {
+            "type": "number",
+            "description": "The number of matched analyses."
+          },
+          "matched_term": {
+            "type": "string",
+            "description": "The search term that was matched."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "The SHA256 hash of the matched file."
+          }
+        }
+      },
+      "SearchTermResults": {
+        "type": "object",
+        "properties": {
+          "first_seen": {
+            "description": "First match",
+            "type": "number",
+            "format": "float"
+          },
+          "last_seen": {
+            "description": "Last match",
+            "type": "number",
+            "format": "float"
+          },
+          "matched_analysis": {
+            "description": "Number of analysis associated with results",
+            "type": "integer"
+          },
+          "result_count": {
+            "description": "Number of results",
+            "type": "integer"
+          },
+          "search_term": {
+            "description": "Search term",
+            "type": "string"
+          },
+          "results": {
+            "description": "Array of search matches",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/search_results_entity"
+            }
+          }
+        }
+      },
+      "yara_validate_details_entity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the test."
+          },
+          "line_no": {
+            "type": "integer",
+            "description": "The rule line number of test failure"
+          },
+          "passed": {
+            "type": "boolean",
+            "description": "Indicates whether the test passed or not."
+          },
+          "message": {
+            "type": "string",
+            "description": "The message associated with the test failure."
+          },
+          "result_type": {
+            "type": "string",
+            "description": "The type of result (error, warning, or info).",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the test."
+          }
+        }
+      },
+      "yara_validate_results_entity": {
+        "type": "object",
+        "properties": {
+          "warning_details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "An array of warnings generated by the tests."
+          },
+          "yara_version": {
+            "type": "string",
+            "description": "The version of Yara used for the test."
+          },
+          "tests_failed": {
+            "type": "integer",
+            "description": "The number of failed tests."
+          },
+          "test_warnings": {
+            "type": "integer",
+            "description": "The number of tests with warnings."
+          },
+          "tests_run": {
+            "type": "integer",
+            "description": "The total number of tests run."
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/yara_validate_details_entity"
+            },
+            "description": "An array of details associated with the results."
+          },
+          "tests_passed": {
+            "type": "integer",
+            "description": "The number of passed tests."
+          }
+        }
+      },
+      "YaraValidateResults": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "The status of the test.",
+            "enum": [
+              "complete",
+              "testing",
+              "failed",
+              "queued"
+            ]
+          },
+          "ruleid": {
+            "type": "string",
+            "description": "The ID of the Yara rule."
+          },
+          "created": {
+            "type": "number",
+            "description": "The timestamp when the test was created."
+          },
+          "results": {
+            "$ref": "#/components/schemas/yara_validate_results_entity"
+          },
+          "rule_name": {
+            "type": "string",
+            "description": "The name of the rule. This is auto generated if no name is specified."
+          },
+          "rule_revision": {
+            "type": "integer",
+            "description": "The revision number of the rule."
+          }
+        }
+      },
+      "yara_scan_history_result_entity": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "number",
+            "description": "The timestamp when the scan job was created."
+          },
+          "shared": {
+            "type": "boolean"
+          },
+          "insights": {
+            "type": "object",
+            "properties": {
+              "matches": {
+                "type": "array",
+                "description": "The matches of the insights.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "matches": {
+                      "type": "integer",
+                      "description": "The number of matches in the repository."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The sample repository type."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "matched_files": {
+            "type": "integer",
+            "description": "The number of matched files."
+          },
+          "percent_coverage": {
+            "type": "number",
+            "description": "The percent coverage of the scan."
+          },
+          "rule_name": {
+            "type": "string",
+            "description": "The name of the rule."
+          },
+          "rule_revision": {
+            "type": "integer",
+            "description": "The revision number of the rule."
+          },
+          "ruleid": {
+            "type": "string",
+            "description": "The ID token for the rule."
+          },
+          "scan_time": {
+            "type": "number",
+            "description": "The time it took to complete the scan."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the scan.",
+            "enum": [
+              "complete",
+              "scanning",
+              "failed",
+              "queued"
+            ]
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sub",
+                "art",
+                "art_lab",
+                "kg"
+              ]
+            },
+            "description": "Sample repositories to scan\n  * `sub`: Submissions. Packed files (PE | PE+)\n  * `art`: Unlabeled Artifacts. Unpacked unknown files (PE | PE+)\n  * `art_lab`: Labeled Artifacts. Unpacked malware files (PE | PE+)\n  * `kg`: Goodware. Known good file (PE | PE+)\n"
+          },
+          "token": {
+            "type": "string",
+            "description": "The token associated with the scan job."
+          },
+          "yara_test": {
+            "$ref": "#/components/schemas/YaraValidateResults"
+          }
+        }
+      },
+      "YaraScansHistory": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/yara_scan_history_result_entity"
+            },
+            "description": "An array of scan results."
+          }
+        }
+      },
+      "community_yara_scans_result_entity": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "number",
+            "description": "The timestamp when the scan job was created."
+          },
+          "insights": {
+            "type": "object",
+            "properties": {
+              "matches": {
+                "type": "array",
+                "description": "The matches of the insights.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "matches": {
+                      "type": "integer",
+                      "description": "The number of matches in the repository."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The sample repository type."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "matched_files": {
+            "type": "integer",
+            "description": "The number of matched files."
+          },
+          "percent_coverage": {
+            "type": "number",
+            "description": "The percent coverage of the scan."
+          },
+          "rule_name": {
+            "type": "string",
+            "description": "The name of the rule."
+          },
+          "rule_revision": {
+            "type": "integer",
+            "description": "The revision number of the rule."
+          },
+          "ruleid": {
+            "type": "string",
+            "description": "The ID token for the rule."
+          },
+          "scan_time": {
+            "type": "number",
+            "description": "The time it took to complete the scan."
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the scan.",
+            "enum": [
+              "complete",
+              "scanning",
+              "failed",
+              "queued"
+            ]
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sub",
+                "art",
+                "art_lab",
+                "kg"
+              ]
+            },
+            "description": "Sample repositories to scan\n  * `sub`: Submissions. Packed files (PE | PE+)\n  * `art`: Unlabeled Artifacts. Unpacked unknown files (PE | PE+)\n  * `art_lab`: Labeled Artifacts. Unpacked malware files (PE | PE+)\n  * `kg`: Goodware. Known good file (PE | PE+)\n"
+          },
+          "token": {
+            "type": "string",
+            "description": "The token associated with the scan job."
+          },
+          "yara_test": {
+            "$ref": "#/components/schemas/YaraValidateResults"
+          },
+          "user_profile": {
+            "type": "object",
+            "properties": {
+              "anonymous": {
+                "type": "boolean"
+              },
+              "avatar": {
+                "type": "string",
+                "description": "URL for author's avatar picture, empty if anonymous"
+              },
+              "nickname": {
+                "type": "string",
+                "description": "Author's nickname, empty if anonymous"
+              }
+            }
+          }
+        }
+      },
+      "CommunityYaraScans": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/community_yara_scans_result_entity"
+            },
+            "description": "An array of scan results."
+          }
+        }
+      },
+      "yara_goodware_match_entity": {
+        "type": "object",
+        "properties": {
+          "compile_time": {
+            "type": "integer",
+            "description": "The compile time of the PE file."
+          },
+          "linker_version": {
+            "type": "string",
+            "description": "The version of the linker used to create the PE file."
+          },
+          "subsystem": {
+            "type": "string",
+            "description": "The subsystem of the PE file."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the PE file."
+          },
+          "characteristics": {
+            "type": "array",
+            "description": "The characteristics of the PE file.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the characteristic."
+                },
+                "value": {
+                  "type": "integer",
+                  "description": "The value of the characteristic."
+                }
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "The metadata of the PE file.",
+            "properties": {
+              "StringInfo": {
+                "type": "object",
+                "description": "The string information of the PE file.",
+                "properties": {
+                  "LegalCopyright": {
+                    "type": "string",
+                    "description": "The legal copyright of the PE file."
+                  },
+                  "InternalName": {
+                    "type": "string",
+                    "description": "The internal name of the PE file."
+                  },
+                  "FileVersion": {
+                    "type": "string",
+                    "description": "The file version of the PE file."
+                  },
+                  "CompanyName": {
+                    "type": "string",
+                    "description": "The company name of the PE file."
+                  },
+                  "ProductName": {
+                    "type": "string",
+                    "description": "The product name of the PE file."
+                  },
+                  "ProductVersion": {
+                    "type": "string",
+                    "description": "The product version of the PE file."
+                  },
+                  "FileDescription": {
+                    "type": "string",
+                    "description": "The file description of the PE file."
+                  },
+                  "OriginalFilename": {
+                    "type": "string",
+                    "description": "The original filename of the PE file."
+                  }
+                }
+              },
+              "VarInfo": {
+                "type": "object",
+                "description": "The variable information of the PE file.",
+                "properties": {
+                  "charsetID": {
+                    "type": "string",
+                    "description": "The charset ID of the PE file."
+                  },
+                  "Translation": {
+                    "type": "string",
+                    "description": "The translation of the PE file."
+                  },
+                  "LangID": {
+                    "type": "string",
+                    "description": "The language ID of the PE file."
+                  }
+                }
+              }
+            }
+          },
+          "source_type": {
+            "type": "string",
+            "description": "The source type of the PE file."
+          },
+          "machine_type": {
+            "type": "string",
+            "description": "The machine type of the PE file."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "The SHA256 hash of the PE file."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the PE file."
+          },
+          "size": {
+            "type": "integer",
+            "description": "The size of the PE file."
+          }
+        },
+        "required": [
+          "compile_time",
+          "linker_version",
+          "subsystem",
+          "name",
+          "characteristics",
+          "metadata",
+          "source_type",
+          "machine_type",
+          "sha256",
+          "type",
+          "size"
+        ]
+      },
+      "yara_scan_match_entity": {
+        "type": "object",
+        "properties": {
+          "compile_time": {
+            "type": "number",
+            "description": "The compile time of the match."
+          },
+          "labels": {
+            "type": "array",
+            "description": "Malware labels associated with the sample.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "matches": {
+                  "type": "integer",
+                  "description": "The number of matches for the label."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Source of the malware label."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Mawlare name."
+                }
+              }
+            }
+          },
+          "lookback": {
+            "type": "integer",
+            "description": "The number of weeks of lookback where the match occurred."
+          },
+          "analysis": {
+            "type": "array",
+            "description": "The analysis that include the match.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The ID of the analysis."
+                }
+              }
+            }
+          },
+          "last_seen": {
+            "type": "number",
+            "description": "The last seen time of the match."
+          },
+          "analysis_count": {
+            "type": "integer",
+            "description": "The number of times the sample has been associated with an analysis."
+          },
+          "first_seen": {
+            "type": "number",
+            "description": "The first seen time of the match."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "The SHA256 hash of the match."
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the match."
+          },
+          "size": {
+            "type": "integer",
+            "description": "The size of the match."
+          }
+        },
+        "required": [
+          "compile_time",
+          "labels",
+          "lookback",
+          "analysis",
+          "last_seen",
+          "analysis_count",
+          "first_seen",
+          "sha256",
+          "type",
+          "size"
+        ]
+      },
+      "YaraScanResults": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "The status of the scan."
+          },
+          "shard_coverage": {
+            "type": "number",
+            "description": "The shard coverage of the scan."
+          },
+          "goodware_matches": {
+            "type": "array",
+            "description": "The list of goodware matches.",
+            "items": {
+              "$ref": "#/components/schemas/yara_goodware_match_entity"
+            }
+          },
+          "yara_test": {
+            "$ref": "#/components/schemas/yara_validate_results_entity"
+          },
+          "ruleid": {
+            "type": "string",
+            "description": "The ID of the YARA rule used for the scan."
+          },
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/yara_scan_match_entity"
+            }
+          },
+          "perc_complete": {
+            "type": "number",
+            "description": "The percentage of completion of the scan."
+          },
+          "settings": {
+            "type": "object",
+            "description": "The settings used for the scan.",
+            "properties": {
+              "store_offsets": {
+                "description": "Return list of matched strings and their offsets for each Yara match",
+                "type": "boolean"
+              },
+              "fast": {
+                "description": "Yara fast scan mode",
+                "type": "boolean"
+              },
+              "scan_assist": {
+                "description": "Automatic scan parameter tailoring (disable for full manual control)",
+                "type": "boolean"
+              }
+            }
+          },
+          "lookback_window": {
+            "type": "integer",
+            "description": "The lookback window of the scan."
+          },
+          "matched_goodware_files": {
+            "type": "integer",
+            "description": "The number of matched goodware files."
+          },
+          "created": {
+            "type": "number",
+            "description": "The creation time of the scan."
+          },
+          "rule_name": {
+            "type": "string",
+            "description": "The name of the YARA rule used for the scan."
+          },
+          "percent_coverage": {
+            "type": "number",
+            "description": "The percentage coverage of the scan."
+          },
+          "matched_analysis": {
+            "type": "integer",
+            "description": "The number of matched analyses."
+          },
+          "matched_files": {
+            "type": "integer",
+            "description": "The number of matched files."
+          },
+          "scan_time": {
+            "type": "number",
+            "description": "The scan time."
+          },
+          "rule_revision": {
+            "type": "integer",
+            "description": "The revision of the YARA rule used for the scan."
+          },
+          "lookback_coverage": {
+            "type": "array",
+            "description": "The lookback coverage of the scan.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "week": {
+                  "type": "integer",
+                  "description": "The week of the coverage."
+                },
+                "matches": {
+                  "type": "integer",
+                  "description": "The number of matches."
+                },
+                "timeouts": {
+                  "type": "integer",
+                  "description": "The number of timeouts."
+                },
+                "coverage": {
+                  "type": "number",
+                  "description": "The coverage percentage."
+                },
+                "target_coverage": {
+                  "type": "array",
+                  "description": "The target coverage of the scan.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "target": {
+                        "type": "string",
+                        "description": "The target of the coverage."
+                      },
+                      "coverage": {
+                        "type": "number",
+                        "description": "The coverage percentage."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "sub",
+                "art",
+                "art_lab",
+                "kg"
+              ]
+            },
+            "description": "Sample repositories to scan\n  * `sub`: Submissions. Packed files (PE | PE+)\n  * `art`: Unlabeled Artifacts. Unpacked unknown files (PE | PE+)\n  * `art_lab`: Labeled Artifacts. Unpacked malware files (PE | PE+)\n  * `kg`: Goodware. Known good file (PE | PE+)\n"
+          },
+          "insights": {
+            "type": "object",
+            "description": "The insights of the scan.",
+            "properties": {
+              "x32": {
+                "type": "integer",
+                "description": "The number of x32 files."
+              },
+              "x64": {
+                "type": "integer",
+                "description": "The number of x64 files."
+              },
+              "size_distribution": {
+                "type": "object",
+                "description": "The size distribution of the files."
+              },
+              "label_summary": {
+                "type": "array",
+                "description": "The label summary of the files.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "matches": {
+                      "type": "integer",
+                      "description": "The number of matches."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the label."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the label."
+                    }
+                  }
+                }
+              },
+              "exe": {
+                "type": "integer",
+                "description": "The number of executable files."
+              },
+              "dll": {
+                "type": "integer",
+                "description": "The number of DLL files."
+              },
+              "size_range": {
+                "type": "number",
+                "description": "The size range of the files."
+              },
+              "matches": {
+                "type": "array",
+                "description": "The matches of the files.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "matches": {
+                      "type": "integer",
+                      "description": "The number of matches."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the match."
+                    }
+                  }
+                }
+              },
+              "first_compile": {
+                "type": "number",
+                "description": "The first compile time of the files."
+              },
+              "minsize": {
+                "type": "integer",
+                "description": "The minimum size of the files."
+              },
+              "maxsize": {
+                "type": "integer",
+                "description": "The maximum size of the files."
+              },
+              "compile_range": {
+                "type": "number",
+                "description": "The compile range of the files."
+              },
+              "coverage": {
+                "type": "array",
+                "description": "The coverage of the files.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "coverage_percent": {
+                      "type": "number",
+                      "description": "The coverage percentage."
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "The type of the coverage."
+                    }
+                  }
+                }
+              },
+              "dotnet": {
+                "type": "integer",
+                "description": "The number of .NET files."
+              },
+              "file_types": {
+                "type": "object",
+                "description": "The file types of the files."
+              },
+              "first_seen": {
+                "type": "number",
+                "description": "The first seen time of the files."
+              },
+              "last_compile": {
+                "type": "number",
+                "description": "The last compile time of the files."
+              },
+              "last_seen": {
+                "type": "number",
+                "description": "The last seen time of the files."
+              }
+            }
+          }
+        },
+        "required": [
+          "status",
+          "shard_coverage",
+          "goodware_matches",
+          "yara_test",
+          "ruleid",
+          "matches",
+          "perc_complete",
+          "settings",
+          "lookback_window",
+          "matched_goodware_files",
+          "created",
+          "rule_name",
+          "percent_coverage",
+          "matched_analysis",
+          "matched_files",
+          "scan_time",
+          "rule_revision",
+          "lookback_coverage",
+          "targets",
+          "insights"
+        ]
+      },
+      "yara_rule_list_entity": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "number",
+            "description": "The creation time of the rule."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the rule."
+          },
+          "description": {
+            "type": "string",
+            "description": "Rule description."
+          },
+          "revision": {
+            "type": "integer",
+            "description": "The revision of the rule."
+          },
+          "ruleid": {
+            "type": "string",
+            "description": "The ID of the rule."
+          },
+          "shared": {
+            "type": "boolean"
+          },
+          "scans": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "number",
+                  "description": "Scan start time."
+                },
+                "shared": {
+                  "type": "boolean"
+                },
+                "token": {
+                  "type": "string",
+                  "description": "Scan ID token"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "created",
+          "name",
+          "revision",
+          "ruleid"
+        ]
+      },
+      "YaraRuleList": {
+        "type": "object",
+        "properties": {
+          "rule_count": {
+            "type": "number"
+          },
+          "rules": {
+            "type": "array",
+            "description": "The list of rules.",
+            "items": {
+              "$ref": "#/components/schemas/yara_rule_list_entity"
+            }
+          }
+        },
+        "required": [
+          "rules"
+        ]
+      },
+      "community_yara_rule_list_entity": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "number",
+            "description": "The creation time of the rule."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the rule."
+          },
+          "description": {
+            "type": "string",
+            "description": "Rule description."
+          },
+          "revision": {
+            "type": "integer",
+            "description": "The revision of the rule."
+          },
+          "ruleid": {
+            "type": "string",
+            "description": "The ID of the rule."
+          },
+          "shared": {
+            "type": "boolean"
+          },
+          "scans": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "number",
+                  "description": "Scan start time."
+                },
+                "shared": {
+                  "type": "boolean"
+                },
+                "token": {
+                  "type": "string",
+                  "description": "Scan ID token"
+                }
+              }
+            }
+          },
+          "user_anonymous": {
+            "type": "boolean"
+          },
+          "user_avatar": {
+            "type": "string",
+            "description": "Url for author's avatar picture, empty if anonymous"
+          },
+          "user_nickname": {
+            "type": "string",
+            "description": "Author's nickname, empty if anonymous"
+          },
+          "user_publicid": {
+            "type": "string",
+            "description": "Public ID of author"
+          }
+        }
+      },
+      "CommunityYaraRuleList": {
+        "type": "object",
+        "properties": {
+          "rule_count": {
+            "type": "number"
+          },
+          "rules": {
+            "type": "array",
+            "description": "The list of rules.",
+            "items": {
+              "$ref": "#/components/schemas/community_yara_rule_list_entity"
+            }
+          }
+        },
+        "required": [
+          "rules"
+        ]
+      },
+      "YaraRule": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "type": "number",
+            "description": "The creation time of the rule."
+          },
+          "revision": {
+            "type": "integer",
+            "description": "The current revision of the rule."
+          },
+          "active_revision": {
+            "type": "integer",
+            "description": "The rule revision returned when no revision is specified."
+          },
+          "rule": {
+            "type": "string",
+            "description": "The content of the rule."
+          },
+          "ruleid": {
+            "type": "string",
+            "description": "The ID of the rule."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "boolean",
+            "description": "The requesting user is the owner of the rule"
+          },
+          "revisions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "number"
+                },
+                "revision": {
+                  "type": "number"
+                },
+                "shared": {
+                  "type": "boolean"
+                },
+                "validated": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "scans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/yara_scan_history_result_entity"
+            }
+          },
+          "shared": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "created",
+          "revision",
+          "rule",
+          "ruleid"
+        ]
+      },
+      "YaraRuleShared": {
+        "type": "object",
+        "properties": {
+          "ruleid": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "history_entity": {
+        "type": "object",
+        "properties": {
+          "autoit": {
+            "description": "AutoIt detected",
+            "type": "boolean"
+          },
+          "children": {
+            "description": "Number of unpacked children",
+            "type": "integer"
+          },
+          "created": {
+            "description": "Submission timestamp",
+            "type": "number",
+            "format": "float"
+          },
+          "deepmatch": {
+            "description": "DeepMatch matches",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/deepmatch_entity"
+            }
+          },
+          "downloader": {
+            "description": "Downloader detected",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Unpacking submission ID",
+            "type": "string"
+          },
+          "malwareid": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/malware_id_short"
+            }
+          },
+          "malwareid_restricted": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/malware_id_short"
+            }
+          },
+          "sha256": {
+            "description": "Parent submission SHA256",
+            "type": "string"
+          },
+          "status": {
+            "description": "Unpacking status",
+            "type": "string"
+          },
+          "private": {
+            "description": "Sample is private",
+            "type": "boolean"
+          },
+          "configs": {
+            "description": "Indicates whether the file contains configuration data.",
+            "type": "boolean"
+          },
+          "Signed": {
+            "description": "Indicates whether the file is signed.",
+            "type": "boolean"
+          },
+          "Corrupt": {
+            "description": "Indicates whether the file is corrupt.",
+            "type": "boolean"
+          },
+          "Type": {
+            "description": "The type of file.",
+            "type": "string"
+          },
+          "Size": {
+            "description": "The size of the file.",
+            "type": "string"
+          },
+          "submission_sha256": {
+            "description": "The SHA256 hash of the submitted file.",
+            "type": "string"
+          },
+          "Compile Time": {
+            "description": "The date and time the file was compiled.",
+            "type": "string"
+          }
+        }
+      },
+      "BatchDownloadUrl": {
+        "type": "object",
+        "properties": {
+          "download_url": {
+            "description": "Direct download URL",
+            "type": "string"
+          }
+        }
+      },
+      "private_feed_entity": {
+        "type": "object",
+        "properties": {
+          "autoit": {
+            "description": "AutoIt detected",
+            "type": "boolean"
+          },
+          "child_count": {
+            "description": "Number of unpacked children",
+            "type": "integer"
+          },
+          "children": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "description": "Child SHA256 hash",
+              "properties": {
+                "autoit": {
+                  "description": "AutoIt detected",
+                  "type": "boolean"
+                },
+                "downloader": {
+                  "description": "Downloader detected",
+                  "type": "boolean"
+                },
+                "malwareid": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Malwareid match"
+                  }
+                }
+              }
+            }
+          },
+          "created": {
+            "description": "Submission timestamp",
+            "type": "number",
+            "format": "float"
+          },
+          "downloader": {
+            "description": "Downloader detected",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Unpacking submission ID",
+            "type": "string"
+          },
+          "malwareid": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/malware_id_short"
+            }
+          },
+          "submission_sha256": {
+            "description": "Parent submission SHA256",
+            "type": "string"
+          }
+        }
+      },
+      "PrivateFeedYaraTags": {
+        "description": "Private feed yara tags",
+        "type": "object",
+        "properties": {
+          "count": {
+            "description": "Numer of tags available",
+            "type": "integer"
+          },
+          "malwareid": {
+            "description": "Yara tag names",
+            "type": "object",
+            "additionalProperties": {
+              "description": "Tag instance count",
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "PrivateFeedFiltered": {
+        "description": "Private feed filtered by tag",
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "description": "Cursor used to scroll to page of feed results",
+            "type": "integer"
+          },
+          "submission_count": {
+            "description": "Number of submissions in feed page"
+          },
+          "tag_type": {
+            "description": "Type of tag used to filter feed",
+            "type": "string"
+          },
+          "tag_value": {
+            "description": "Tag label",
+            "type": "string"
+          },
+          "submissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/private_feed_entity"
+            }
+          }
+        }
+      },
+      "PrivateFeed": {
+        "description": "Private feed",
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "description": "Cursor used to scroll to page of feed results",
+            "type": "integer"
+          },
+          "submission_count": {
+            "description": "Number of submissions in feed page"
+          },
+          "submissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/private_feed_entity"
+            }
+          }
+        }
+      },
+      "BulkSampleFeed": {
+        "type": "object",
+        "properties": {
+          "available_volumes": {
+            "type": "integer",
+            "description": "The number of available download volumes"
+          },
+          "archive_password": {
+            "type": "string",
+            "description": "The password for the ZIP archive"
+          },
+          "current_volume": {
+            "type": "string",
+            "description": "The link to the current download volume"
+          },
+          "volumes": {
+            "type": "array",
+            "description": "The list of volumes",
+            "items": {
+              "type": "object",
+              "properties": {
+                "link": {
+                  "type": "string",
+                  "description": "Direct download link for the volume ZIP file"
+                }
+              },
+              "required": [
+                "link"
+              ]
+            }
+          }
+        },
+        "required": [
+          "available_volumes",
+          "archive_password",
+          "current_volume",
+          "volumes"
+        ]
+      },
+      "History": {
+        "description": "User history",
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "description": "Cursor used to scroll to page of results",
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/history_entity"
+            }
+          }
+        }
+      },
+      "UnpackStatus": {
+        "description": "Unpack submission status",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unpack submission ID"
+              },
+              "status": {
+                "$ref": "#/components/schemas/status"
+              }
+            },
+            "required": [
+              "id",
+              "status"
+            ]
+          }
+        ]
+      },
+      "UnpackResults": {
+        "description": "Unpack submission results",
+        "allOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unpack submission ID"
+              },
+              "filename": {
+                "type": "string",
+                "description": "Name of the submitted file"
+              },
+              "status": {
+                "$ref": "#/components/schemas/status"
+              },
+              "sha256": {
+                "type": "string",
+                "description": "SHA256 hash of the submitted file"
+              },
+              "time": {
+                "type": "number",
+                "format": "float",
+                "description": "Timestamp of original submission (in UTC)"
+              },
+              "private": {
+                "type": "boolean",
+                "description": "Sample is private"
+              },
+              "zipped": {
+                "type": "boolean",
+                "description": "Parent sample was uploaded in a ZIP file"
+              },
+              "deflated": {
+                "type": "boolean",
+                "description": "Artificial inflation of the parent sample was detected, and the parent has been deflated for analysis"
+              },
+              "user_submitted": {
+                "type": "boolean",
+                "description": "Sample was submitted by current user"
+              },
+              "results": {
+                "type": "array",
+                "description": "Array of results from submission, including the parent",
+                "items": {
+                  "$ref": "#/components/schemas/result"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "status",
+              "sha256",
+              "time",
+              "results"
+            ]
+          }
+        ]
+      },
+      "UserAccess": {
+        "description": "User settings",
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "description": "API key (only available with an API enabled plan)"
+          },
+          "download_limit": {
+            "type": "integer",
+            "description": "The download limit. The value -1 indicates no limit"
+          },
+          "download_password_protected": {
+            "type": "boolean",
+            "description": "Whether the download is password protected."
+          },
+          "downloads_month": {
+            "type": "integer",
+            "description": "The number of downloads in the current month."
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique user ID."
+          },
+          "anonymous_profile": {
+            "type": "boolean",
+            "description": "Public profile is anonymous"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "URL for avatar picture"
+          },
+          "email": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "User nickname, will be displayed if profile is not anonymous."
+          },
+          "month_limit": {
+            "type": "integer",
+            "description": "The monthly limit."
+          },
+          "month_limit_private": {
+            "type": "integer",
+            "description": "The monthly limit for private submissions."
+          },
+          "month_submissions": {
+            "type": "integer",
+            "description": "The number of submissions in the current month."
+          },
+          "month_submissions_private": {
+            "type": "integer",
+            "description": "The number of private submissions in the current month."
+          },
+          "month_submissions_public": {
+            "type": "integer",
+            "description": "The number of public submissions in the current month."
+          },
+          "private_submissions_global": {
+            "type": "boolean",
+            "description": "Whether all submissions will be marked as private (only available with plan that supports private submissions)."
+          },
+          "roles": {
+            "type": "array",
+            "description": "User's roles.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "search_limit": {
+            "type": "integer",
+            "description": "The nubmer of searches permitted in a month."
+          },
+          "searches_month": {
+            "type": "integer",
+            "description": "The number of searches in the current month."
+          },
+          "total_submissions": {
+            "type": "integer",
+            "description": "The total number of submissions."
+          },
+          "yara_scan_limit": {
+            "type": "integer",
+            "description": "The nubmer YARA scans permitted in a month."
+          },
+          "yara_scans_month": {
+            "type": "integer",
+            "description": "The number of YARA scans in the current month."
+          }
+        },
+        "required": [
+          "download_limit",
+          "download_password_protected",
+          "downloads_month",
+          "id",
+          "month_limit",
+          "month_limit_private",
+          "month_submissions",
+          "month_submissions_private",
+          "month_submissions_public",
+          "roles",
+          "search_limit",
+          "searches_month",
+          "total_submissions",
+          "yara_scan_limit",
+          "yara_scans_month"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "description": "The private UNPACME API expects the API key to be included in all requests in the request header using the following header name. `Authorization: Key your_api_key`\n",
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    }
+  }
+}
