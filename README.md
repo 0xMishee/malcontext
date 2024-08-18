@@ -12,10 +12,10 @@ This tool aims to:
 
 
 ## Current Version
-Version 0.0.1:
+Version 0.0.1.x:
 ```
 This version: 
-- 
+- No stable way of using it; but it won't crash (ง •_•)ง
 ```
 
 ## Installation
