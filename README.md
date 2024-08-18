@@ -1,6 +1,8 @@
 ## About 
 There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. 
+
 This tool aims to:
+
     1. Incorporate APIs from services that I commonly use (VT,Unpacme, Malshare etc).
     2. Summarize data and functionality from these platforms.
     3. Have a "monkey have hash||IP||domain, monkey want data" sort of approach to how complex the tool is to use.
