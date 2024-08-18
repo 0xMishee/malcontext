@@ -39,11 +39,13 @@ int main(int argc, char *argv[]) {
 
         // Get API key and get the file report
         char* api_key = get_api_key_value("virustotal");
-        //char* virustotal_json_string = virustotal_get_file_report(api_key, VIRUS_HASH);
+        char* virustotal_json_string_file_report = virustotal_get_file_report(api_key, VIRUS_HASH);
         char* virustotal_json_string_file_behaviour = virustotal_get_behaviour_report(api_key, VIRUS_HASH);
 
         //context_virustotal_file_print(virustotal_json_string);
-        context_virustotal_file_behaviour_print(virustotal_json_string_file_behaviour);
+        //context_virustotal_file_behaviour_print(virustotal_json_string_file_behaviour);
+        context_virustotal_file_print(virustotal_json_string_file_report);
+
 
         // Cleanup
         free(api_key);

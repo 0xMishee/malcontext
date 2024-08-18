@@ -27,6 +27,11 @@ cmake ..
 cmake --build .
 ```
 ## Examples
+
+!(Alt text)[picture/picture_1.png]
+!(Alt text)[picture/picture_2.png]
+
+
 ## Roadmap
     1. Add Virustotal API functionality.
     2. Add UnpacME API functionality. 
