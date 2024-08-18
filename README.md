@@ -28,8 +28,8 @@ cmake --build .
 ```
 ## Examples
 
-!(Alt text)[[picture/picture_1.png](https://github.com/0xMishee/malware_context/blob/main/pictures/picture_1.png)]
-!(Alt text)[picture/picture_2.png]
+![picture/picture_1.png](https://github.com/0xMishee/malware_context/blob/main/pictures/picture_1.png)
+![Alt text](picture/picture_2.png)
 
 
 ## Roadmap
