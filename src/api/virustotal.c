@@ -13,7 +13,8 @@
 //Note to self, perhaps write a POST/GET function that can be used for all API calls..
 
 
-// Get file availability status from VirusTotal
+// This func is just a copy/paste from 
+// Get file availability status from virustotal_get_file_report.
 char* virustotal_sample_availability(char* api_key, char* hash){
     CURL *hnd = curl_easy_init();
     if (!hnd) {

@@ -13,7 +13,7 @@ char* open_configuration(const char* key_file) {
     char *file_buffer;
     __int64 fileSize;
 
-    hFile = CreateFileA(key_file, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    hFile = CreateFileA(key_file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         printf(ANSI_RED"[!] Couldn't not open configuration file : %d \n"ANSI_RESET, GetLastError());

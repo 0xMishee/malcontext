@@ -4,7 +4,7 @@
 #include <io.h> 
 #include <cjson/cJSON.h>
 
-#include "configuration.h"
+#include "configuration_old.h"
 
 
 BOOL configuration_check() {

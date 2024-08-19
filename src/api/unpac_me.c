@@ -22,7 +22,6 @@ char* unpac_me_sample_availability(char* api_key, char* sample_hash){
     curl_easy_setopt(hnd, CURLOPT_WRITEDATA, (void *)&api_response);
 
     char* api_url_header = "https://api.unpac.me/api/v1/private/search/term/sha256";
-    //char* api_url_header = append_header_strings("https://api.unpac.me/api/v1/private/search/term/%s", sample_hash);
     curl_easy_setopt(hnd, CURLOPT_URL, api_url_header);
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
