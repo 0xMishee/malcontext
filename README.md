@@ -8,7 +8,7 @@ This tool aims to:
     3. Have a "monkey have hash||IP||domain, monkey want data" sort of approach to how complex the tool is to use.
     4. Add YARA-X and AOB Scanner.
     5. Incorporate windows event tracing events for targeted processes.
-    6. Add unpac me API for downloading samples.
+    6. Downloading malware.
 
 
 ## Current Version
