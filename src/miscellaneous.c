@@ -9,7 +9,7 @@ typedef struct {
     size_t size;
 }api_call_response;
 
-// Callback function to write the response from the API call
+// Callback function to write the response from the API call.
 size_t write_json_callback(void *data, size_t size, size_t nmemb, void *userdata){
     size_t real_size = size * nmemb;
     api_call_response *api_response = (api_call_response *) userdata;
@@ -25,7 +25,7 @@ size_t write_json_callback(void *data, size_t size, size_t nmemb, void *userdata
     return real_size;
 };
 
-// Function to append strings to the header
+// Function to convert timestamp to formatted time string
 char* convert_time (int timestamp) {
     time_t time = timestamp;
     struct tm *timeinfo;
@@ -40,9 +40,15 @@ char* convert_time (int timestamp) {
     return buffer;
 }
 
+// Function to append strings to the header. 
 char* append_header_strings(char* header, char* string){
     size_t header_length = strlen(header) + strlen(string) + 1;
     char *header_string = (char *)malloc(header_length);
     snprintf(header_string, header_length, header, string);
     return header_string;
+}
+
+// Check so it's a valid hash. TBD
+BOOL hash_sample_validation(char* hash){
+    return FALSE;
 }

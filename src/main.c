@@ -36,7 +36,8 @@ int main(int argc, char *argv[]) {
 
     // Search for a sample hash
     if(strcmp(argv[1], "-search") == 0 && argc == 3) {
-        search_sample_available(argv[2]);
+        //search_sample_available(argv[2]);
+        search_sample_available(VIRUS_HASH);
     } else if(strcmp(argv[1], "-search") == 0 && argc != 3) {
         printf(ANSI_RED"[!] Error: No hash provided\n\n\n" ANSI_RESET);
         return 1;
