@@ -146,7 +146,7 @@ void search_sample_available(char* sample_hash){
     };
 
     HANDLE hMutex = CreateMutex(NULL, FALSE, NULL);
-    if(hMutex == NULL){
+    if(!hMutex){
         printf(ANSI_RED"[!] Error: Failed to create mutex\n"ANSI_RESET);
         return;
     };
@@ -164,25 +164,25 @@ void search_sample_available(char* sample_hash){
     DWORD dwThreadId_virustotal, dwThreadId_unpac_me, dwThreadId_malshare, dwThreadId_loading;
 
     hThread_loading = CreateThread(NULL, 0, LoadingAnimationFuncMany, &thread_data, 0, &dwThreadId_loading);
-    if(hThread_loading == NULL){
+    if(!hThread_loading){
         printf(ANSI_RED"[!] Error: Failed to create loading animation thread\n"ANSI_RESET);
         return;
     };
 
     hThread_virustotal = CreateThread(NULL, 0, search_virustotal_available, &thread_data, 0, &dwThreadId_virustotal);
-    if(hThread_virustotal == NULL){
+    if(!hThread_virustotal){
         printf(ANSI_RED"[!] Error: Failed to create Virustotal thread\n"ANSI_RESET);
         return;
     };
 
     hThread_unpac_me = CreateThread(NULL, 0, search_unpac_me_available, &thread_data, 0, &dwThreadId_unpac_me);
-    if(hThread_unpac_me == NULL){
+    if(!hThread_unpac_me){
         printf(ANSI_RED"[!] Error: Failed to create Unpac.me thread\n"ANSI_RESET);
         return;
     };
 
     hThread_malshare = CreateThread(NULL, 0, search_malshare_available, &thread_data, 0, &dwThreadId_malshare);
-    if(hThread_malshare == NULL){
+    if(!hThread_malshare){
         printf(ANSI_RED"[!] Error: Failed to create Malshare thread\n"ANSI_RESET);
         return;
     };
