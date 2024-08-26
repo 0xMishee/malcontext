@@ -67,6 +67,3 @@ dkms.conf
 /keys
 curl.txt
 /api_output
-/testfiles
-/yara-x_rules
-/tests
