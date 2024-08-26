@@ -13,7 +13,7 @@
 DWORD WINAPI search_virustotal_available(LPVOID lpParam){
     ThreadData* thread_data = (ThreadData*)lpParam;
     if (!thread_data){
-        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET););
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
         return 1;
     };
 
@@ -45,7 +45,7 @@ DWORD WINAPI search_virustotal_available(LPVOID lpParam){
 DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
     ThreadData* thread_data = (ThreadData*)lpParam;
     if (!thread_data){
-        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET););
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
         return 1;
     };
 
@@ -79,7 +79,7 @@ DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
 DWORD WINAPI search_malshare_available(LPVOID lpParam){
     ThreadData* thread_data = (ThreadData*)lpParam;
     if (!thread_data){
-        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET););
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
         return 1;
     };
 
@@ -145,8 +145,8 @@ void search_sample_available(char* sample_hash){
         return;
     };
 
-    HANDLE hMutex_api_answer = CreateMutex(NULL, FALSE, NULL);
-    if(hMutex_api_answer == NULL){
+    HANDLE hMutex = CreateMutex(NULL, FALSE, NULL);
+    if(hMutex == NULL){
         printf(ANSI_RED"[!] Error: Failed to create mutex\n"ANSI_RESET);
         return;
     };
@@ -155,7 +155,7 @@ void search_sample_available(char* sample_hash){
     SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE };
 
     ThreadData thread_data;
-    thread_data.hMutex = hMutex_api_answer;
+    thread_data.hMutex = hMutex;
     thread_data.sample_hash = sample_hash;
     thread_data.loading_animation_flags = &loading_flags;
     thread_data.search_api_response = &search_api_response;
@@ -222,7 +222,6 @@ void search_sample_available(char* sample_hash){
     CloseHandle(hThread_unpac_me);
     CloseHandle(hThread_malshare);
     CloseHandle(hThread_loading);
-    
-    CloseHandle(hMutex_api_answer);
+    CloseHandle(hMutex);
     return;
 };
