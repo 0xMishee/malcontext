@@ -66,3 +66,4 @@ dkms.conf
 /build
 keys/
 curl.txt
+/"api output references"
