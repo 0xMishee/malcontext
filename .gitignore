@@ -67,3 +67,8 @@ dkms.conf
 /keys
 curl.txt
 /api_output
+
+# vcpkg related files
+/vcpkg_installed/
+/vcpkg/
+.vcpkg-root
