@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
+
 #cmake -G "MinGW Makefiles" -DCMAKE_C_COMPILER="C:\\msys64\\mingw64\\bin\\gcc.exe" ..
 set(CMAKE_TOOLCHAIN_FILE "E:/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
 
@@ -35,8 +36,7 @@ target_link_libraries(MalwareContext PRIVATE cjson)
 
 # Enable testing
 enable_testing()
-add_test(NAME HelpFlagTest COMMAND Dev -h)
-add_test(NAME YaraRuleTest COMMAND Dev -y)
-add_test(NAME ContextTest COMMAND Dev -context)
-
-install(TARGETS MalwareContext RUNTIME DESTINATION run)
+add_test(NAME HelpFlagTest COMMAND MalwareContext -h)
+add_test(NAME YaraRuleTest COMMAND MalwareContext -y)
+add_test(NAME ContextTest COMMAND MalwareContext -context)
+add_test(NAME SearchTest COMMAND MalwareContext -search "b1f2068201c29f3b00aeedc0911498043d7c204a860ca16b3fef47fc19fc2b22")
