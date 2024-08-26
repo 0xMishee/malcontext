@@ -15,7 +15,7 @@ This tool aims to:
 Version 0.0.1.x:
 ```
 This version: 
-- No stable way of using it; but it won't crash (ง •_•)ง
+- No stable way of using it; but it won't crash (ง •_•)ง Testing out how I want things to work.
 ```
 
 ## Installation
