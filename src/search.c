@@ -3,8 +3,6 @@
 #include <windows.h>
 #include <string.h> 
 
-
-
 #include "config.h"
 #include "search.h"
 #include "virustotal.h"
@@ -12,26 +10,25 @@
 #include "malshare.h"
 #include "ansi_colours.h"
 
-// Global variables for the loading animation
-BOOL loading_animation_virustotal = TRUE;
-BOOL loading_animation_unpac_me = TRUE;
-BOOL loading_animation_malshare = TRUE;
-
-// Global variables for the search results
-volatile BOOL search_virustotal_found = FALSE;
-volatile BOOL search_unpac_me_found = FALSE;
-volatile BOOL search_malshare_found = FALSE;
-
 DWORD WINAPI search_virustotal_available(LPVOID lpParam){
     ThreadData* thread_data = (ThreadData*)lpParam;
+    if (!thread_data){
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET););
+        return 1;
+    };
+
     HANDLE hMutex = thread_data->hMutex;
     char* sample_hash = thread_data->sample_hash;
+    LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
+    SearchAPIResponse* search_api_response = thread_data->search_api_response;
 
     char* api_key = get_api_key_value("virustotal");
     char* virustotal_response = virustotal_sample_availability(api_key, sample_hash);
     cJSON* virustotal_json = cJSON_Parse(virustotal_response);
     if (!strcmp(cJSON_GetArrayItem(virustotal_json,0)->string,"error") == 0){
-        search_virustotal_found = TRUE;
+        WaitForSingleObject(hMutex, INFINITE);
+        search_api_response->search_virustotal_found = TRUE;
+        ReleaseMutex(hMutex);
     } 
 
     // Cleanup
@@ -40,22 +37,31 @@ DWORD WINAPI search_virustotal_available(LPVOID lpParam){
     cJSON_Delete(virustotal_json);
 
     WaitForSingleObject(hMutex, INFINITE);
-    loading_animation_virustotal = FALSE;
-
+    loading_animation_flags->loading_animation_virustotal = FALSE;
+    ReleaseMutex(hMutex);
     return 0;
 }
 
 DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
     ThreadData* thread_data = (ThreadData*)lpParam;
+    if (!thread_data){
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET););
+        return 1;
+    };
+
     HANDLE hMutex = thread_data->hMutex;
     char* sample_hash = thread_data->sample_hash;
+    LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
+    SearchAPIResponse* search_api_response = thread_data->search_api_response;
 
     char* api_key = get_api_key_value("unpacme");
     char* unpac_me_response = unpac_me_sample_availability(api_key, sample_hash);
     cJSON* unpac_me_json = cJSON_Parse(unpac_me_response);
     cJSON* matched_analysis = cJSON_GetArrayItem(unpac_me_json, 0);
     if (strcmp(matched_analysis->string, "first_seen") == 0){
-        search_unpac_me_found = TRUE;
+        WaitForSingleObject(hMutex, INFINITE);
+        search_api_response->search_unpac_me_found = TRUE;
+        ReleaseMutex(hMutex);
     } 
 
     // Cleanup
@@ -64,15 +70,23 @@ DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
     cJSON_Delete(unpac_me_json);
 
     WaitForSingleObject(hMutex, INFINITE);
-    loading_animation_unpac_me = FALSE;
+    loading_animation_flags->loading_animation_unpac_me = FALSE;
+    ReleaseMutex(hMutex);
 
     return 0;
 };
 
 DWORD WINAPI search_malshare_available(LPVOID lpParam){
     ThreadData* thread_data = (ThreadData*)lpParam;
+    if (!thread_data){
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET););
+        return 1;
+    };
+
     HANDLE hMutex = thread_data->hMutex;
     char* sample_hash = thread_data->sample_hash;
+    LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
+    SearchAPIResponse* search_api_response = thread_data->search_api_response;
 
     //search_sample_available(VIRUS_HASH);
     char* api_key = get_api_key_value("malshare");
@@ -80,7 +94,9 @@ DWORD WINAPI search_malshare_available(LPVOID lpParam){
     cJSON* malshare_json = cJSON_Parse(malshare_response);
     cJSON* malshare_data = cJSON_GetArrayItem(malshare_json, 0);
     if (!strcmp(malshare_data->string, "ERROR") == 0){
-        search_malshare_found = TRUE;
+        WaitForSingleObject(hMutex, INFINITE);
+        search_api_response->search_malshare_found = TRUE;
+        ReleaseMutex(hMutex);
     } 
 
     // Cleanup
@@ -89,19 +105,25 @@ DWORD WINAPI search_malshare_available(LPVOID lpParam){
     cJSON_Delete(malshare_json);
 
     WaitForSingleObject(hMutex, INFINITE);
-    loading_animation_malshare = FALSE;
+    loading_animation_flags->loading_animation_malshare = FALSE;
+    ReleaseMutex(hMutex);
 
     return 0;
 };
 
 // Thread function for the loading animation
 DWORD WINAPI LoadingAnimationFuncMany(LPVOID lpParam) {
-    HANDLE hMutex = (HANDLE)lpParam;
+    ThreadData* thread_data = (ThreadData*)lpParam;
+    HANDLE hMutex = thread_data->hMutex;
+    LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
+
+    // debug printf("time to define some stuff\n");
     const char* animation = "|/-\\";
     int i = 0;
-    while (TRUE ) {
+    // debug printf("checking while true!\n");
+    while (TRUE) {
         WaitForSingleObject(hMutex, INFINITE);
-        BOOL loading_animation = loading_animation_virustotal || loading_animation_unpac_me || loading_animation_malshare;
+        BOOL loading_animation = loading_animation_flags->loading_animation_malshare || loading_animation_flags->loading_animation_unpac_me || loading_animation_flags->loading_animation_malshare;
         ReleaseMutex(hMutex);
 
         if (!loading_animation) {
@@ -129,16 +151,19 @@ void search_sample_available(char* sample_hash){
         return;
     };
 
+    LoadingAnimationFlags loading_flags = { TRUE, TRUE, TRUE };
+    SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE };
+
     ThreadData thread_data;
     thread_data.hMutex = hMutex_api_answer;
     thread_data.sample_hash = sample_hash;
-
+    thread_data.loading_animation_flags = &loading_flags;
+    thread_data.search_api_response = &search_api_response;
 
     HANDLE hThread_virustotal, hThread_unpac_me, hThread_malshare, hThread_loading;
     DWORD dwThreadId_virustotal, dwThreadId_unpac_me, dwThreadId_malshare, dwThreadId_loading;
 
-    
-    hThread_loading = CreateThread(NULL, 0, LoadingAnimationFuncMany, hMutex_api_answer, 0, &dwThreadId_loading);
+    hThread_loading = CreateThread(NULL, 0, LoadingAnimationFuncMany, &thread_data, 0, &dwThreadId_loading);
     if(hThread_loading == NULL){
         printf(ANSI_RED"[!] Error: Failed to create loading animation thread\n"ANSI_RESET);
         return;
@@ -162,7 +187,9 @@ void search_sample_available(char* sample_hash){
         return;
     };
 
+    // debug printf("Waiting for the loading thread to finish\n");
     WaitForSingleObject(hThread_loading, INFINITE);
+    // debug printf("Im back from the loading thread\n");
 
     HANDLE threads[] = {hThread_unpac_me, hThread_virustotal};
     DWORD waitResult = WaitForMultipleObjects(2, threads, TRUE, INFINITE);
@@ -170,19 +197,20 @@ void search_sample_available(char* sample_hash){
         printf(ANSI_RED"[!] Error: WaitForMultipleObjects failed\n"ANSI_RESET);
     }
 
-    if(search_malshare_found){
+    // debug printf("Im back from the search threads, time to print results!\n");
+    if(thread_data.search_api_response->search_malshare_found){
         printf(ANSI_GREEN"[+] Sample found on Malshare\n"ANSI_RESET);
     } else {
         printf(ANSI_RED"[!] Sample not found on Malshare\n"ANSI_RESET);
     };
 
-    if (search_unpac_me_found){
+    if (thread_data.search_api_response->search_unpac_me_found){
         printf(ANSI_GREEN"[+] Sample found on Unpac.me\n"ANSI_RESET);
     } else {
         printf(ANSI_RED"[!] Sample not found on Unpac.me\n"ANSI_RESET);
     };
 
-    if (search_virustotal_found){
+    if (thread_data.search_api_response->search_virustotal_found){
         printf(ANSI_GREEN"[+] Sample found on Virustotal\n"ANSI_RESET);
     } else {
         printf(ANSI_RED"[!] Sample not found on Virustotal\n"ANSI_RESET);
