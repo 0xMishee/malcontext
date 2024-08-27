@@ -19,6 +19,7 @@
         "cjson.h": "c",
         "async.h": "c",
         "pthread.h": "c",
-        "miscellaneous.h": "c"
+        "miscellaneous.h": "c",
+        "curl.h": "c"
     }
 }

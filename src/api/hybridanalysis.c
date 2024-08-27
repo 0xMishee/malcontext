@@ -1,18 +1,20 @@
 #include <stdio.h>
-#include <Windows.h>
 #include <curl/curl.h>
-#include <cjson/cJSON.h>
-#include <stdlib.h>
-#include <string.h>
+#include <windows.h>
 
+#include "ansi_colours.h"
 #include "miscellaneous.h"
 
 
-char* unpac_me_sample_availability(char* api_key, char* sample_hash){
 
+
+char* hybridanalysis_search(char* api_key, char* sample_hash){
     CURL *hnd = curl_easy_init();
-
-    // Dynamically allocate memory for the response
+    if (!hnd) {
+        fprintf(stderr, "[!] Failed to initialize curl\n");
+        return NULL;
+    };
+    
     api_call_response api_response;
     api_response.data = (char *)malloc(1);
     api_response.size = 0;
@@ -21,21 +23,20 @@ char* unpac_me_sample_availability(char* api_key, char* sample_hash){
     curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, write_json_callback);
     curl_easy_setopt(hnd, CURLOPT_WRITEDATA, (void *)&api_response);
 
-    char* api_url_header = "https://api.unpac.me/api/v1/private/search/term/sha256";
-    curl_easy_setopt(hnd, CURLOPT_URL, api_url_header);
-    
+    char* url_header = "https://hybrid-analysis.com/api/v2/search/hash";
+    curl_easy_setopt(hnd, CURLOPT_URL, url_header);
+    curl_easy_setopt(hnd, CURLOPT_USERAGENT, CURL_AGENT);
+
     struct curl_slist *headers = NULL;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    char* api_key_header = append_header_strings("Authorization: Key %s",api_key);
+    headers = curl_slist_append(headers, "accept: application/json");
+    char* api_key_header = append_header_strings("api-key: %s", api_key);
     headers = curl_slist_append(headers, api_key_header);
+    headers = curl_slist_append(headers, "Content-Type: application/x-www-form-urlencoded");
 
     curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
 
-    // Create JSON data
     char json_data[128];
-    snprintf(json_data, sizeof(json_data), "{\"value\": \"%s\", \"repo_type\": \"malware\"}", sample_hash);
-
-    // Set POST fields
+    snprintf(json_data, sizeof(json_data), "hash=%s", sample_hash);
     curl_easy_setopt(hnd, CURLOPT_POSTFIELDS, json_data);
 
     CURLcode ret = curl_easy_perform(hnd);
@@ -44,11 +45,7 @@ char* unpac_me_sample_availability(char* api_key, char* sample_hash){
         return NULL;
     };
 
-    // Cleanup
-
-    //free(api_url_header);
-    free(api_key_header);
+    //Cleanup
     curl_easy_cleanup(hnd);
-    
     return api_response.data;
-};
+}

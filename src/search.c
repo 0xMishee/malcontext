@@ -49,7 +49,7 @@ DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
         return 1;
     };
 
-    HANDLE hMutex = thread_data->hMutex;
+    HANDLE hMutex = thread_data->hMutex; 
     char* sample_hash = thread_data->sample_hash;
     LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
     SearchAPIResponse* search_api_response = thread_data->search_api_response;
@@ -98,7 +98,7 @@ DWORD WINAPI search_malshare_available(LPVOID lpParam){
         search_api_response->search_malshare_found = TRUE;
         ReleaseMutex(hMutex);
     } 
-
+    
     // Cleanup
     free(malshare_response);
     free(api_key);
@@ -215,7 +215,6 @@ void search_sample_available(char* sample_hash){
     } else {
         printf(ANSI_RED"[!] Sample not found on Virustotal\n"ANSI_RESET);
     };
-
 
     // Cleanup
     CloseHandle(hThread_virustotal);

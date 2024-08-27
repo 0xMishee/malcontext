@@ -9,6 +9,7 @@
 #include "config.h"
 #include "context.h"
 #include "ansi_colours.h"
+#include "hybridanalysis.h"
 #include "search.h"
 #include "malshare.h"
 
@@ -31,6 +32,20 @@ int main(int argc, char *argv[]) {
     if (argc < 2 || !argv[1]){ 
         printf(ANSI_RED"[!] Error: No arguments provided\n\n\n" ANSI_RESET); 
         return 1;
+    };
+
+    if (strcmp(argv[1], "hybrid") == 0) {
+        char* api_key = get_api_key_value("hybridanalysis");
+        char* return_string = hybridanalysis_search(api_key, VIRUS_HASH);
+        cJSON *hybrid_json = cJSON_Parse(return_string);
+        char* hybrid_json_str = cJSON_Print(hybrid_json); // Convert cJSON object to string
+        printf("This is what returned...\n%s\n", hybrid_json_str);
+        free(api_key);
+        free(return_string);
+        free(hybrid_json_str); // Free the string after use
+        cJSON_Delete(hybrid_json);
+
+        return 0;
     };
 
 

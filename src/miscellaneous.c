@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <time.h>
+#include <curl/curl.h>
 
 
 // Structure to store the response from the API call
@@ -51,4 +52,13 @@ char* append_header_strings(char* header, char* string){
 // Check so it's a valid hash. TBD
 BOOL hash_sample_validation(char* hash){
     return FALSE;
+}
+
+// Print the details of the curl request, for debugging purposes.
+void print_curl_request_details(CURL *hnd, struct curl_slist *headers){
+    struct curl_slist *temp = headers;
+    while (temp) {
+        printf("  %s\n", temp->data);
+        temp = temp->next;
+    }
 }
