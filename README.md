@@ -1,5 +1,5 @@
 ## About 
-There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. 
+There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. The tool is heavil inspired by [https://github.com/alexandreborges/malwoverview](Maloverview) written by Alexandre Borges.
 
 This tool aims to:
 
@@ -19,7 +19,7 @@ This version:
 ```
 
 ## Installation
-It's using cmake so you do you (～￣▽￣)～ Still very, very early in development so it's barebones atm.
+It's using cmake and vcpkg , so you do you (～￣▽￣)～ Still very, very early in development so it's barebones; which means we're on a "works on my PC" level.
 ```
 mkdir build
 cd build
@@ -30,11 +30,6 @@ Add to PATH:
 $env:PATH += ";Your tools folder"
 
 ```
-## Examples
-
-![picture/picture_1.png](https://github.com/0xMishee/malware_context/blob/main/pictures/picture_1.png)
-![picture/picture_2.png](https://github.com/0xMishee/malware_context/blob/main/pictures/picture_2.png)
-
 
 ## Roadmap
     1. Add Virustotal API functionality.
