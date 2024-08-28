@@ -1,0 +1,10 @@
+{
+    "apiKeys": {
+      "virustotal": "",
+      "malshare": "",
+      "unpacme": "",
+      "hybridanalysis": "",
+      "malpedia": "",
+      "triage": ""
+    }
+}

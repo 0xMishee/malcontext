@@ -20,8 +20,6 @@ find_package(cJSON CONFIG REQUIRED)
 
 # Collect all source files
 file(GLOB SOURCES "src/*.c" "src/api/*.c")
-
-# Specify the main executable source file
 set(MAIN_EXECUTABLE_SOURCE "src/main.c")
 
 # Remove the main executable source file from the SOURCES list
@@ -29,6 +27,11 @@ list(REMOVE_ITEM SOURCES ${MAIN_EXECUTABLE_SOURCE})
 
 # Add the main executable with all other source files
 add_executable(MalwareContext ${MAIN_EXECUTABLE_SOURCE} ${SOURCES})
+set_target_properties(MalwareContext PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Debug
+)
 
 # Link the CURL library to the executable
 target_link_libraries(MalwareContext PRIVATE CURL::libcurl)
