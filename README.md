@@ -17,7 +17,7 @@ This version:
 
 ## Installation
 It's using cmake and vcpkg , so you do you (～￣▽￣)～ Still very, very early in development so it's barebones; which means we're on a "works on my PC" level.
-The release version will build in the "bin" directory. 
+The release version will built in the "bin" directory. 
 ```
 mkdir build
 cd build
