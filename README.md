@@ -1,14 +1,11 @@
 ## About 
-There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. The tool is heavil inspired by [Maloverview](https://github.com/alexandreborges/malwoverview) written by Alexandre Borges.
+There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. The tool is heavil inspired by [Malwoverview](https://github.com/alexandreborges/malwoverview) written by Alexandre Borges.
 
 This tool aims to:
-
-    1. Incorporate APIs from services that I commonly use (VT,Unpacme, Malshare etc).
-    2. Summarize data and functionality from these platforms.
-    3. Have a "monkey have hash||IP||domain, monkey want data" sort of approach to how complex the tool is to use.
-    4. Add YARA-X and AOB Scanner.
-    5. Incorporate windows event tracing events for targeted processes.
-    6. Downloading malware (for research purposes (っ °Д °;)っ).
+1. Easy to chew information for initial triage of malware.
+2. Option to query APIs from selected plattforms.
+3. Search for availability of malware.
+4. Download malware through the APIs. 
 
 
 ## Current Version
@@ -25,22 +22,23 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
-
-Add to PATH: 
-$env:PATH += ";Your tools folder"
+```
+When compiling it will create a config.json file where your .exe is spawned (hopefully). Open it and fill out what APIs you're using. 
 
 ```
+{
+    "apiKeys": {
+      "virustotal": "",
+      "malshare": "",
+      "unpacme": "",
+      "hybridanalysis": "",
+      "malpedia": "",
+      "triage": ""
+    }
+}
+```
 
-## Roadmap
-    1. Add Virustotal API functionality.
-    2. Add UnpacME API functionality. 
-    3. Add Malshare API functionality.
-    4. Add Hash search functionality.
-    5. Add Yara-X functionality.
-    6. ...more stuff. 
-    7. Refactor into assembly (●'◡'●)
-
-## Authors
+## Contributors
 
 Me, myself and I. 
 
