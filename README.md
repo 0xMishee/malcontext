@@ -1,14 +1,11 @@
 ## About 
-There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. 
+There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. The tool is heavil inspired by [Malwoverview](https://github.com/alexandreborges/malwoverview) written by Alexandre Borges.
 
 This tool aims to:
-
-    1. Incorporate APIs from services that I commonly use (VT,Unpacme, Malshare etc).
-    2. Summarize data and functionality from these platforms.
-    3. Have a "monkey have hash||IP||domain, monkey want data" sort of approach to how complex the tool is to use.
-    4. Add YARA-X and AOB Scanner.
-    5. Incorporate windows event tracing events for targeted processes.
-    6. Downloading malware (for research purposes (っ °Д °;)っ).
+1. Provide easy to chew information for initial triage of malware.
+2. Option to query APIs from selected plattforms.
+3. Search for availability of malware.
+4. Download malware through the APIs. 
 
 
 ## Current Version
@@ -19,33 +16,31 @@ This version:
 ```
 
 ## Installation
-It's using cmake so you do you (～￣▽￣)～ Still very, very early in development so it's barebones atm.
+It's using cmake and vcpkg , so you do you (～￣▽￣)～ Still very, very early in development so it's barebones; which means we're on a "works on my PC" level.
+The release version will built in the "bin" directory. 
 ```
 mkdir build
 cd build
 cmake ..
-cmake --build .
-
-Add to PATH: 
-$env:PATH += ";Your tools folder"
+cmake --build . --config Release
+```
+Open the conf.json in the bin folder and populate the APIs you will use. 
 
 ```
-## Examples
+{
+    "apiKeys": {
+      "virustotal": "",
+      "malshare": "",
+      "unpacme": "",
+      "hybridanalysis": "",
+      "malpedia": "",
+      "triage": ""
+    }
+}
 
-![picture/picture_1.png](https://github.com/0xMishee/malware_context/blob/main/pictures/picture_1.png)
-![picture/picture_2.png](https://github.com/0xMishee/malware_context/blob/main/pictures/picture_2.png)
+```
 
-
-## Roadmap
-    1. Add Virustotal API functionality.
-    2. Add UnpacME API functionality. 
-    3. Add Malshare API functionality.
-    4. Add Hash search functionality.
-    5. Add Yara-X functionality.
-    6. ...more stuff. 
-    7. Refactor into assembly (●'◡'●)
-
-## Authors
+## Contributors
 
 Me, myself and I. 
 
