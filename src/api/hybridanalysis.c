@@ -6,8 +6,6 @@
 #include "miscellaneous.h"
 
 
-
-
 char* hybridanalysis_search(char* api_key, char* sample_hash){
     CURL *hnd = curl_easy_init();
     if (!hnd) {
