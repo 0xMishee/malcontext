@@ -17,13 +17,14 @@ This version:
 
 ## Installation
 It's using cmake and vcpkg , so you do you (～￣▽￣)～ Still very, very early in development so it's barebones; which means we're on a "works on my PC" level.
+The release version will build in the "bin" directory. 
 ```
 mkdir build
 cd build
 cmake ..
-cmake --build .
+cmake --build . --config Release
 ```
-When compiling it will create a config.json file where your .exe is spawned (hopefully). Open it and fill out what APIs you're using. 
+Open the conf.json in the bin folder and populate the APIs you will use. 
 
 ```
 {
