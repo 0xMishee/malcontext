@@ -51,6 +51,9 @@ char* append_header_strings(char* header, char* string){
 
 // Check so it's a valid hash. TBD
 BOOL hash_sample_validation(char* hash){
+    if (strlen(hash) == 128 || strlen(hash) == 256){
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -61,4 +64,15 @@ void print_curl_request_details(CURL *hnd, struct curl_slist *headers){
         printf("  %s\n", temp->data);
         temp = temp->next;
     }
+}
+
+//Checks if api_name is in the list of available APIs
+BOOL check_api_name(char* api_name){
+    char* available_apis[] = {"unpac_me", "malpedia", "malshare", "hybridanalysis"};
+    for (int i = 0; i < 4; i++){
+        if (strcmp(api_name, available_apis[i]) == 0){
+            return TRUE;
+        }
+    }
+    return FALSE;
 }

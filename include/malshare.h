@@ -11,6 +11,8 @@
 
 
 char* malshare_sample_availability(char* api_key, char* sample_hash);
+char* malshare_download_file(char* api_key, char* sample_hash);
+
 
 
 #endif // MALSHARE_H

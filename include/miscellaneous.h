@@ -18,5 +18,6 @@ size_t write_json_callback(void *data, size_t size, size_t nmemb, void *userdata
 char* convert_time(int timestamp);
 char* append_header_strings(char* header, char* string);
 BOOL hash_sample_validation(char* hash);
+BOOL check_api_name(char* api_name);
 //void print_curl_request_details(CURL *hnd, struct curl_slist);
 #endif // MISCELLANEOUS_H
