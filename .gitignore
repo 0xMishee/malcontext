@@ -73,4 +73,4 @@ curl.txt
 # vcpkg related files
 /vcpkg/
 .vcpkg-root
-/vcpkg_installed
+/vcpkg_installed/
