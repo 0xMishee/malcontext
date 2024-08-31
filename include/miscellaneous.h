@@ -13,11 +13,16 @@ typedef struct {
     size_t size;
 } api_call_response;
 
+
+
 // Callback function to write the response from the API call
 size_t write_json_callback(void *data, size_t size, size_t nmemb, void *userdata);
+size_t write_data_callback(void *ptr, size_t size, size_t nmemb, FILE *stream);
 char* convert_time(int timestamp);
 char* append_header_strings(char* header, char* string);
 BOOL hash_sample_validation(char* hash);
 BOOL check_api_name(char* api_name);
-//void print_curl_request_details(CURL *hnd, struct curl_slist);
+BOOL create_file(char* file_name, char* downloaded_file_data);
+//void print_curl_request_details(CURL *hnd, struct curl_slist *headers);
+
 #endif // MISCELLANEOUS_H

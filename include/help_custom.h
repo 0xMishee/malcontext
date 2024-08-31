@@ -6,10 +6,10 @@
 
 void print_help_pages();
 void active_help();    
-void passive_help();  
-void scan_help();      
 void yara_help();
-void configuration_help();
+void download_help();
+void search_help();
+void api_help();
 
 
 #endif 

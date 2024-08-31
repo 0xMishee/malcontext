@@ -7,66 +7,49 @@ void print_help_pages() {
 	printf("\nMalware Context - An analyze tool ");
 	printf("\n\n");
 
-	printf("Usage: \n");
+	printf("Usage: 									\n");
 	printf("  help [-h] [-a] [-p] [-s] [-c] <option>\n");
+	printf("										\n\n");
+
+	printf("Options: 																					\n");
+	printf("  -h : help				Show this help message and exit										\n");
+	printf("  -y : yara-x				Scans a directory or file with .yara rules in yara-x directory	\n");
+	printf("  -d : download			Download a malware sample based on the hash							\n");
+
+	api_help();
+	download_help();
+	search_help();	
 	printf("\n\n");
 
-	printf("Options: \n");
-	printf("  -h : help				Show this help message and exit\n");
-	printf("  -a : active				Listens for interesting events based on configuration and interupts when triggered\n");
-	printf("  -p : passive				Same as active but does not interupt any processes\n");
-	printf("  -s : scan				Scans a file or directory based on search and configuration parameter\n");
-	printf("  -c : configuration			Show the current configuration\n");
-	printf("  -y : yara-x				Scans a directory or file with .yara rules in yara-x directory\n");
-	printf("\n\n");
 
+
+	printf("Additional Information: 	\n");
+	printf("  Author: Martin Jakobsson	\n");
+	printf("  Version: 0.0.1			\n");
+	printf("  License: TBD				\n");
+	printf("\n\n");
+}
+
+void api_help() {
+	printf("APIs: 						\n");
+	printf(" -um : unpac_me				\n");
+	printf(" -mp : malpedia				\n");
+	printf(" -ms : malshare				\n");
+	printf(" -ha : hybridanalysis		\n");
+}
+
+
+void download_help() {
 	printf("Arguments: \n");
-	printf("  input  :				The file or directory to scan\n");	
-	printf("  output :				The output file to write the results to\n");
-	printf("\n\n");
-
-	active_help();
-	passive_help();
-	scan_help();
-	configuration_help();
-
-
-	printf("Additional Information: \n");
-	printf("  Author: Martin Jakobsson\n");
-	printf("  Version: 0.0.1\n");
-	printf("  License: TBD\n");
-	printf("\n\n");
+	printf("  -d <API> <hash>: download			Download a malware sample based on the hash\n");
 }
 
-void configuration_help() {
-	printf("Configuration Options: \n");
-	printf("  -a	: add				Add a new key to the configuration\n");
-	printf("  -r	: remove			Remove a key from the configuration\n");
-	printf("  -l	: list				List all keys in the configuration\n");
-	printf("  -s	: show				Show the current configuration\n");
-	printf("  none	: no value			Either shows the current config or initializes a new one if there's none \n");
-	printf("\n\n");
+void search_help() {
+	printf("Arguments: \n");
+	printf("  -s <hash>: search			Search for a malware sample based on the hash\n");
 }
-
-void active_help() {
-	
-}
-
-void passive_help() {
-	
-
-}
-
-void scan_help() {
-	
-
-}
-
 
 void yara_help() {
-	printf("Yara-x Options: \n");
-	printf("  -y <dir/file>	 				\n");
-	printf("  Example:                  malware_context -y 'C:\\Program Files\\'\n");
-	printf("\n\n");
+	printf("Not implemented yet\n");
 
 }
