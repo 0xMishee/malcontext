@@ -2,6 +2,8 @@
 #include <string.h>
 #include <cjson/cJSON.h>
 #include <windows.h>
+#include <libbase64.h>
+#include <b64/cdecode.h>
 
 #include "help_custom.h"
 #include "virustotal.h"
@@ -12,13 +14,13 @@
 #include "hybridanalysis.h"
 #include "search.h"
 #include "malshare.h"
+#include "malpedia.h"
+#include "miscellaneous.h"
 
-#define VIRUS_HASH "b1f2068201c29f3b00aeedc0911498043d7c204a860ca16b3fef47fc19fc2b22"
+#define VIRUS_HASH "cba8d79949adc3c56c02fee56644f4084b7471bc5aed1c81803054f017240a72"
 #define VIRUS_HASH_2 "df7b92b717abe121fb536a0eeb8e323cc9153f70250656dfc670c9650776afa7"
+#define VIRUS_HASH_3 "02e9f0fbb7f3acea4fcf155dc7813e15c1c8d1c77c3ae31252720a9fa7454292"
 
-
-// TEMP Testing purposes only!
-#define FILE_PATH_DIR "E:\\malware overview re-write\\malware_context\\yara-x rules"
 
 int main(int argc, char *argv[]) {
     printf(ANSI_BLUE " __   __  _______  ___      _     _  _______  ______    _______    _______  _______  __    _  _______  _______  __   __  _______  \n");
@@ -35,6 +37,33 @@ int main(int argc, char *argv[]) {
         return 1;
     };
 
+
+    if (strcmp(argv[1], "pedia") == 0) {
+        char* api_key = get_api_key_value("malpedia");
+        malpedia_check_api_key(api_key);
+        malpedia_search_malware(api_key, VIRUS_HASH_3);
+
+        cJSON* malpedia_json = cJSON_Parse(malpedia_download_malware(api_key, VIRUS_HASH_3));
+        cJSON* data = cJSON_GetArrayItem(malpedia_json, 0);
+
+
+        //char* decoded = decode_base64((char*)data->valuestring);
+        DecodedBase64BinaryData decoded = decode_base64(data->valuestring);
+
+        free(api_key);
+        cJSON_Delete(malpedia_json);
+        
+        return 0;
+    };
+
+    if (strcmp(argv[1], "mal") == 0) {
+        char* api_key = get_api_key_value("malshare");
+        char* return_string = malshare_sample_test(api_key, VIRUS_HASH);
+        char* return_string_2 = malshare_get_rate_limit(api_key);
+        free(api_key);
+        free(return_string);
+    }
+
     if (strcmp(argv[1], "-d") == 0) {
         char* api_name; 
 
@@ -42,6 +71,7 @@ int main(int argc, char *argv[]) {
             api_name = "default";
         } else {
             api_name = argv[2];
+
         };
 
         if ((hash_sample_validation(VIRUS_HASH) || hash_sample_validation(VIRUS_HASH)) == TRUE) {

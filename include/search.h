@@ -26,7 +26,7 @@ typedef struct {
     char* sample_hash;
     LoadingAnimationFlags* loading_animation_flags;
     SearchAPIResponse* search_api_response;
-} ThreadData;
+} ThreadSearchData;
 
 void search_sample_available(char* sample_hash);
 

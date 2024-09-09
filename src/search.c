@@ -11,7 +11,7 @@
 #include "ansi_colours.h"
 
 DWORD WINAPI search_virustotal_available(LPVOID lpParam){
-    ThreadData* thread_data = (ThreadData*)lpParam;
+    ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
     if (!thread_data){
         fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
         return 1;
@@ -43,7 +43,7 @@ DWORD WINAPI search_virustotal_available(LPVOID lpParam){
 }
 
 DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
-    ThreadData* thread_data = (ThreadData*)lpParam;
+    ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
     if (!thread_data){
         fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
         return 1;
@@ -77,7 +77,7 @@ DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
 };
 
 DWORD WINAPI search_malshare_available(LPVOID lpParam){
-    ThreadData* thread_data = (ThreadData*)lpParam;
+    ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
     if (!thread_data){
         fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
         return 1;
@@ -113,7 +113,7 @@ DWORD WINAPI search_malshare_available(LPVOID lpParam){
 
 // Thread function for the loading animation
 DWORD WINAPI LoadingAnimationFuncMany(LPVOID lpParam) {
-    ThreadData* thread_data = (ThreadData*)lpParam;
+    ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
     HANDLE hMutex = thread_data->hMutex;
     LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
 
@@ -154,7 +154,7 @@ void search_sample_available(char* sample_hash){
     LoadingAnimationFlags loading_flags = { TRUE, TRUE, TRUE };
     SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE };
 
-    ThreadData thread_data;
+    ThreadSearchData thread_data;
     thread_data.hMutex = hMutex;
     thread_data.sample_hash = sample_hash;
     thread_data.loading_animation_flags = &loading_flags;

@@ -123,6 +123,13 @@ char* unpac_me_get_url_batch_job(char* token, char* api_key){
 
     // Cleanup
     curl_easy_cleanup(hnd);
-    printf("Response from curl: %s\n", api_response.data);
     return api_response.data;
 }
+
+
+
+
+
+
+
+

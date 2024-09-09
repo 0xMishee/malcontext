@@ -20,6 +20,7 @@
         "async.h": "c",
         "pthread.h": "c",
         "miscellaneous.h": "c",
-        "curl.h": "c"
+        "curl.h": "c",
+        "unpac_me.h": "c"
     }
 }
