@@ -2,7 +2,6 @@
   "dependencies": [
     "curl",
     "cjson", 
-    "aklomp-base64", 
     "b64"
   ]
 }

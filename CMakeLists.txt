@@ -17,7 +17,6 @@ include_directories(include)
 # Find and configure CURL library
 find_package(CURL CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
-find_package(base64 CONFIG REQUIRED)
 find_package(unofficial-b64 CONFIG REQUIRED)
 
 # Collect all source files
@@ -36,7 +35,6 @@ set_target_properties(MalwareContext PROPERTIES
 )
 
 # Link the CURL library to the executable
-target_link_libraries(MalwareContext PRIVATE aklomp::base64)
 target_link_libraries(MalwareContext PRIVATE unofficial::b64::b64)
 target_link_libraries(MalwareContext PRIVATE CURL::libcurl)
 target_link_libraries(MalwareContext PRIVATE cjson)

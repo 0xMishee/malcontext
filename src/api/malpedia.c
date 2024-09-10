@@ -1,4 +1,9 @@
 #include <stdio.h>
+#include <cjson/cJSON.h>
+#include <windows.h>
+#include "ansi_colours.h"
+
+
 #include "curl/curl.h"
 #include "miscellaneous.h"
 /*  {"detail":"No Sample matches the given query."}
@@ -61,7 +66,6 @@ char* malpedia_search_malware(char* api_key, char* sample_hash){
         return NULL;
     };
 
-    printf("This is what returned...%s\n", api_response.data);
     curl_easy_cleanup(hnd);
     return api_response.data;
 }
@@ -93,4 +97,31 @@ char* malpedia_download_malware(char* api_key, char* sample_hash){
 
     curl_easy_cleanup(hnd);
     return api_response.data;
+}
+
+BOOL malpedia_validate_key_hash(char* api_key, char* sample_hash){
+    if (!api_key | !sample_hash){
+        printf(stderr, ANSI_RED "[!] Error: Invalid API key or hash\n" ANSI_RESET);
+        return FALSE;
+    };
+
+    char* api_key_response = malpedia_check_api_key(api_key);
+    cJSON* api_key_json = cJSON_Parse(api_key_response);
+    cJSON* api_key_json_data = cJSON_GetArrayItem(api_key_json, 0);
+
+    if (!api_key_response  || strcmp(api_key_json_data->valuestring, "Valid token.") != 0){
+        printf(stderr, ANSI_RED "[!] Error: Invalid API key\n" ANSI_RESET);
+        return FALSE;
+    };
+
+    char* sample_response = malpedia_search_malware(api_key, sample_hash);
+    cJSON* sample_json = cJSON_Parse(sample_response);
+    cJSON* sample_json_data = cJSON_GetArrayItem(sample_json, 0);
+
+    if (!sample_response || strcmp(sample_json_data->valuestring, "No Sample matches the given query.") == 0){
+        printf(stderr, ANSI_RED "[!] Error: Hash wasn't found on Malpedia\n" ANSI_RESET);
+        return FALSE;
+    };
+
+    return TRUE;
 }

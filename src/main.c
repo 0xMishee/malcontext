@@ -2,7 +2,6 @@
 #include <string.h>
 #include <cjson/cJSON.h>
 #include <windows.h>
-#include <libbase64.h>
 #include <b64/cdecode.h>
 
 #include "help_custom.h"
@@ -40,19 +39,16 @@ int main(int argc, char *argv[]) {
 
     if (strcmp(argv[1], "pedia") == 0) {
         char* api_key = get_api_key_value("malpedia");
-        malpedia_check_api_key(api_key);
-        malpedia_search_malware(api_key, VIRUS_HASH_3);
+        char* response = malpedia_check_api_key(api_key);
+        char* response_2 = malpedia_search_malware(api_key, VIRUS_HASH_2);
 
-        cJSON* malpedia_json = cJSON_Parse(malpedia_download_malware(api_key, VIRUS_HASH_3));
-        cJSON* data = cJSON_GetArrayItem(malpedia_json, 0);
+        if (malpedia_validate_key_hash(api_key, VIRUS_HASH_3) == FALSE){
+            fprintf(stderr, ANSI_RED"[!] Error: Failed to validate the key and hash\n" ANSI_RESET);
+            return 1;
+        } else {
+            printf(ANSI_GREEN"[+] Successfully validated the key and hash\n" ANSI_RESET);
+        };
 
-
-        //char* decoded = decode_base64((char*)data->valuestring);
-        DecodedBase64BinaryData decoded = decode_base64(data->valuestring);
-
-        free(api_key);
-        cJSON_Delete(malpedia_json);
-        
         return 0;
     };
 
