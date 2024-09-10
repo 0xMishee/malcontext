@@ -42,12 +42,8 @@ int main(int argc, char *argv[]) {
         char* response = malpedia_check_api_key(api_key);
         char* response_2 = malpedia_search_malware(api_key, VIRUS_HASH_2);
 
-        if (malpedia_validate_key_hash(api_key, VIRUS_HASH_3) == FALSE){
-            fprintf(stderr, ANSI_RED"[!] Error: Failed to validate the key and hash\n" ANSI_RESET);
-            return 1;
-        } else {
-            printf(ANSI_GREEN"[+] Successfully validated the key and hash\n" ANSI_RESET);
-        };
+        download_malware("-mp", VIRUS_HASH_3);
+
 
         return 0;
     };

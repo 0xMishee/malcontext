@@ -11,7 +11,7 @@
 */
 
 
-
+// Malpedia are cool enough to allow us to actually check if our api-key is valid. 
 char* malpedia_check_api_key(char* api_key){
     CURL *hnd = curl_easy_init();
     api_call_response api_response;
@@ -40,6 +40,8 @@ char* malpedia_check_api_key(char* api_key){
     return api_response.data;
 }
 
+// Just searches for the hash in the malpedia database
+// Returns; md5, sha256, status, family, version, winapi1024v1.
 char* malpedia_search_malware(char* api_key, char* sample_hash){
     CURL *hnd = curl_easy_init();
     api_call_response api_response;
@@ -70,6 +72,7 @@ char* malpedia_search_malware(char* api_key, char* sample_hash){
     return api_response.data;
 }
 
+//Download the hash in .zip format
 char* malpedia_download_malware(char* api_key, char* sample_hash){
     CURL *hnd = curl_easy_init();
     api_call_response api_response;
@@ -99,9 +102,10 @@ char* malpedia_download_malware(char* api_key, char* sample_hash){
     return api_response.data;
 }
 
+// Checks so the api key and hash both are valid; with valid hash here just means that if it exist on the website repo.
 BOOL malpedia_validate_key_hash(char* api_key, char* sample_hash){
     if (!api_key | !sample_hash){
-        printf(stderr, ANSI_RED "[!] Error: Invalid API key or hash\n" ANSI_RESET);
+        printf(ANSI_RED "[!] Error: Invalid API key or hash\n" ANSI_RESET);
         return FALSE;
     };
 
@@ -110,7 +114,7 @@ BOOL malpedia_validate_key_hash(char* api_key, char* sample_hash){
     cJSON* api_key_json_data = cJSON_GetArrayItem(api_key_json, 0);
 
     if (!api_key_response  || strcmp(api_key_json_data->valuestring, "Valid token.") != 0){
-        printf(stderr, ANSI_RED "[!] Error: Invalid API key\n" ANSI_RESET);
+        printf(ANSI_RED "[!] Error: Invalid API key\n" ANSI_RESET);
         return FALSE;
     };
 
@@ -119,7 +123,7 @@ BOOL malpedia_validate_key_hash(char* api_key, char* sample_hash){
     cJSON* sample_json_data = cJSON_GetArrayItem(sample_json, 0);
 
     if (!sample_response || strcmp(sample_json_data->valuestring, "No Sample matches the given query.") == 0){
-        printf(stderr, ANSI_RED "[!] Error: Hash wasn't found on Malpedia\n" ANSI_RESET);
+        printf(ANSI_RED "[!] Error: Hash wasn't found on Malpedia\n" ANSI_RESET);
         return FALSE;
     };
 
