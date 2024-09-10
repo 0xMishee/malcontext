@@ -69,6 +69,7 @@ dkms.conf
 /keys
 curl.txt
 /api_output
+.vscode/
 
 # vcpkg related files
 /vcpkg/
