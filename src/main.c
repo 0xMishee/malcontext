@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
         return 1;
     };
 
-
+    //Testing malpedia API beep boop
     if (strcmp(argv[1], "pedia") == 0) {
         char* api_key = get_api_key_value("malpedia");
         char* response = malpedia_check_api_key(api_key);
@@ -48,31 +48,43 @@ int main(int argc, char *argv[]) {
         return 0;
     };
 
-    if (strcmp(argv[1], "mal") == 0) {
+    //Testing beep boop
+    if (strcmp(argv[1], "malshare") == 0) {
         char* api_key = get_api_key_value("malshare");
         char* return_string = malshare_sample_test(api_key, VIRUS_HASH);
         char* return_string_2 = malshare_get_rate_limit(api_key);
         free(api_key);
         free(return_string);
     }
-
+    
+    // Hey, something that might work...!?
     if (strcmp(argv[1], "-d") == 0) {
-        char* api_name; 
+        char* api_name;
+        char* sample_hash;
 
         if (check_api_name(argv[2]) == FALSE){
             api_name = "default";
         } else {
             api_name = argv[2];
-
         };
 
-        if ((hash_sample_validation(VIRUS_HASH) || hash_sample_validation(VIRUS_HASH)) == TRUE) {
-            BOOL value = download_malware(api_name, VIRUS_HASH);
-            return 0;
+        if (hash_sample_validation(argv[2]) == TRUE){
+            sample_hash = argv[2];
+        } else if (hash_sample_validation(argv[3]) == TRUE) {
+            sample_hash = argv[3];
         } else {
             printf(ANSI_RED"[!] Error: Invalid hash. Correct lengths are 32 || 64.\n\n\n" ANSI_RESET);
             return 1;
-        };
+        }
+
+        BOOL download_return_status = download_malware(api_name, sample_hash);
+
+        if (download_return_status != TRUE) {
+            return 1;
+        } else {
+            return 0;
+        }
+
     };
 
     // temp to check api

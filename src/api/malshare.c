@@ -33,7 +33,6 @@ char* malshare_sample_availability(char* api_key, char* sample_hash){
 
     // Cleanup
     curl_easy_cleanup(hnd);
-    //printf("This is what returned...%s\n", api_response.data);
     return api_response.data;
 }
 
@@ -90,7 +89,6 @@ char* malshare_get_rate_limit(char* api_key){
     };
 
     // Cleanup
-    printf("This is what returned...%s\n", api_response.data);
     curl_easy_cleanup(hnd);
     return api_response.data;
 }
@@ -121,7 +119,8 @@ char* malshare_sample_test(char* api_key, char* sample_hash){
         fprintf(stderr, ANSI_RED"[!] Failed to perform curl request: %s\n"ANSI_RESET, curl_easy_strerror(ret));
         return NULL;
     };
-    printf("This is what returned...%s\n", api_response.data);
+
+
     // Cleanup
     curl_easy_cleanup(hnd);
     return api_response.data;
