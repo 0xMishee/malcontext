@@ -21,8 +21,8 @@ The release version will built in the "bin" directory.
 ```
 mkdir build
 cd build
-cmake ..
-cmake --build . --config Release
+cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . 
 ```
 Open the conf.json in the bin folder and populate the APIs you will use. 
 
@@ -34,6 +34,7 @@ Open the conf.json in the bin folder and populate the APIs you will use.
       "unpacme": "",
       "hybridanalysis": "",
       "malpedia": "",
+      "malwarebazaar": "",
       "triage": ""
     }
 }

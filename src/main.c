@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <b64/cdecode.h>
 
+//
 #include "help_custom.h"
 #include "virustotal.h"
 #include "malware_download.h"
@@ -16,10 +17,13 @@
 #include "malshare.h"
 #include "malpedia.h"
 #include "miscellaneous.h"
+#include "malwarebazaar.h"
 
-#define VIRUS_HASH "cba8d79949adc3c56c02fee56644f4084b7471bc5aed1c81803054f017240a72"
+// Used for debugging
+#define VIRUS_HASH_1 "cba8d79949adc3c56c02fee56644f4084b7471bc5aed1c81803054f017240a72"
 #define VIRUS_HASH_2 "df7b92b717abe121fb536a0eeb8e323cc9153f70250656dfc670c9650776afa7"
 #define VIRUS_HASH_3 "02e9f0fbb7f3acea4fcf155dc7813e15c1c8d1c77c3ae31252720a9fa7454292"
+#define VIRUS_HASH_4 "002ed5ec84f3a40fae4ceeaf5b023fe866bab5ac8cacc1bc8a9425626d4ce91c" // Exist on Malware Bazaar
 
 
 /*
@@ -46,29 +50,65 @@ int main(int argc, char *argv[]) {
         return 1;
     };
 
+    printf("Number of arguments given %d\n", argc);
+
     //Testing malpedia API beep boop
-    if (strcmp(argv[1], "pedia") == 0) {
+    if (strcmp(argv[1], "-mp_debug") == 0) {
         char* api_key = get_api_key_value("malpedia");
         char* response = malpedia_check_api_key(api_key);
         char* response_2 = malpedia_search_malware(api_key, VIRUS_HASH_2);
-
         download_malware("-mp", VIRUS_HASH_3);
-
-
+        
+        
+        free(api_key);
+        free(response);
+        free(response_2);
         return 0;
     };
 
     //Testing beep boop
-    if (strcmp(argv[1], "malshare") == 0) {
+    if (strcmp(argv[1], "-ms_debug") == 0) {
         char* api_key = get_api_key_value("malshare");
-        char* return_string = malshare_sample_test(api_key, VIRUS_HASH);
+        char* return_string = malshare_sample_test(api_key, VIRUS_HASH_1);
         char* return_string_2 = malshare_get_rate_limit(api_key);
+        
+        
         free(api_key);
         free(return_string);
+        return 0;
     }
+
+    if(strcmp(argv[1], "-mb_debug") == 0 && argc == 2) {
+
+        /* 
+        {"query_status": "hash_not_found"}
+        */
+
+
+        char* api_key = get_api_key_value("malwarebazaar");
+        malwarebazaar_download_file(VIRUS_HASH_3);
+
+        free(api_key);
+        return 0;
+    };
+
+        // temp to check api
+    if (strcmp(argv[1], "-ha_debug") == 0) {
+        char* api_key = get_api_key_value("hybridanalysis");
+        char* return_string = hybridanalysis_search(api_key, VIRUS_HASH_1);
+        cJSON *hybrid_json = cJSON_Parse(return_string);
+        char* hybrid_json_str = cJSON_Print(hybrid_json); // Convert cJSON object to string
+        printf("This is what returned...\n%s\n", hybrid_json_str);
+       
+        free(api_key);
+        free(return_string);
+        free(hybrid_json_str); // Free the string after use
+        cJSON_Delete(hybrid_json);
+        return 0;
+    };
     
     // Hey, something that might work...!?
-    if (strcmp(argv[1], "-d") == 0) {
+    if (strcmp(argv[1], "-d") == 0 && (argc == 3 || argc == 4)) {
         char* api_name;
         char* sample_hash;
 
@@ -97,41 +137,16 @@ int main(int argc, char *argv[]) {
 
     };
 
-    // temp to check api
-    if (strcmp(argv[1], "hybrid") == 0) {
-        char* api_key = get_api_key_value("hybridanalysis");
-        char* return_string = hybridanalysis_search(api_key, VIRUS_HASH);
-        cJSON *hybrid_json = cJSON_Parse(return_string);
-        char* hybrid_json_str = cJSON_Print(hybrid_json); // Convert cJSON object to string
-        printf("This is what returned...\n%s\n", hybrid_json_str);
-        free(api_key);
-        free(return_string);
-        free(hybrid_json_str); // Free the string after use
-        cJSON_Delete(hybrid_json);
-
-        return 0;
-    };
-
-
     // Search for a sample hash
-    if(strcmp(argv[1], "-search") == 0 && argc == 3) {
-        //search_sample_available(argv[2]);
-        search_sample_available(VIRUS_HASH);
+    if(strcmp(argv[1], "-s") == 0 && argc == 3) {
+        search_sample_available(argv[2]);
+        //search_sample_available(VIRUS_HASH_1);
     } else if(strcmp(argv[1], "-search") == 0 && argc != 3) {
         printf(ANSI_RED"[!] Error: No hash provided\n\n\n" ANSI_RESET);
         return 1;
     };
 
-    if(strcmp(argv[1], "-context") == 0) {
-
-
-        return 0;
-    };
-
-    if (strcmp(argv[1], "json") == 0) {
-
-        char* api_key = get_api_key_value("virustotal");
-        free(api_key);
+    if(strcmp(argv[1], "-c") == 0 && argc == 3) {
         return 0;
     };
 

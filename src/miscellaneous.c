@@ -10,7 +10,18 @@
 #include "ansi_colours.h"
 #include "miscellaneous.h"
 
+// Hex dump function to print binary data
+void hex_dump(const char *data, size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        if (i % 16 == 0 && i != 0) {
+            printf("\n");
+        }
+        printf("%02x ", (unsigned char)data[i]);
+    }
+    printf("\n");
+}
 
+// Not null terminated. 
 size_t write_data_callback (void *data, size_t size, size_t nmemb, void *userdata){
     size_t real_size = size * nmemb;
     api_call_response *api_response = (api_call_response *) userdata;
@@ -23,12 +34,22 @@ size_t write_data_callback (void *data, size_t size, size_t nmemb, void *userdat
     api_response->data = ptr;
     memcpy(&(api_response->data[api_response->size]), data, real_size);
     api_response->size += real_size;
-    api_response->data[api_response->size] = 0;
+/*
+    // Debugging: Print the current size and the added size
+    //printf("Current size: %zu, Added size: %zu\n", api_response->size, real_size);
+    // Debugging: Dump the allocated data
+    //printf("Allocated data: %.*s\n", (int)real_size, (char *)data);
+    // Print the first 1000 characters in the buffer
+    // Debugging: Print a hex dump of the first 1000 bytes
+    size_t dump_size = api_response->size < 1000 ? api_response->size : 1000;
+    printf("Hex dump of the first 1000 bytes (or less):\n");
+    hex_dump(api_response->data, dump_size);
+    */
 
     return real_size;
 }
 
-// Callback function to write the response from the API call.
+// Callback function to write the response from the API call. Null terminates
 size_t write_json_callback(void* data, size_t size, size_t nmemb, void* userdata){
     size_t real_size = size * nmemb;
     api_call_response *api_response = (api_call_response *) userdata;
@@ -97,7 +118,7 @@ void print_curl_request_details(CURL *hnd, struct curl_slist *headers){
 
 //Checks if api_name is in the list of available APIs
 BOOL check_api_name(char* api_name){
-    char* available_apis[] = {"-um", "-mp", "-ms", "-ha"};
+    char* available_apis[] = {"-um", "-mp", "-ms", "-ha", "-mb"};
     for (int i = 0; i < 4; i++){
         if (strcmp(api_name, available_apis[i]) == 0){
             return TRUE;

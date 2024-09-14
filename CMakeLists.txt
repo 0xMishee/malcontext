@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 #cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug ..
 set(CMAKE_TOOLCHAIN_FILE "E:/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake")
-set(VCPKG_TARGET_TRIPLET "x64-windows")
+set(VCPKG_TARGET_TRIPLET "x64-windows-static")
 
 # Set the project name and specify the language
 set(CMAKE_C_COMPILER "clang")

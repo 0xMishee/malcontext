@@ -4,52 +4,49 @@
 
 
 void print_help_pages() {
-	printf("\nMalware Context - An analyze tool ");
+	printf("\nMalware Context - A malware triage tool ");
+
 	printf("\n\n");
 
-	printf("Usage: 									\n");
-	printf("  help [-h] [-a] [-p] [-s] [-c] <option>\n");
-	printf("										\n\n");
+	printf("Usage: 									  \n");
+	printf("  help [-h] [-s] [-d] [-c] <option> <hash>\n");
+	printf("										  \n\n");
 
 	printf("Options: 																					\n");
 	printf("  -h : help				Show this help message and exit										\n");
-	printf("  -y : yara-x				Scans a directory or file with .yara rules in yara-x directory	\n");
 	printf("  -d : download			Download a malware sample based on the hash							\n");
 
-	api_help();
 	download_help();
+
 	search_help();	
+
 	printf("\n\n");
-
-
 
 	printf("Additional Information: 	\n");
 	printf("  Author: Martin Jakobsson	\n");
-	printf("  Version: 0.0.1			\n");
-	printf("  License: TBD				\n");
+	printf("  Version: 0.1.0			\n");
+	printf("  License: GPL-3.0 license	\n");
 	printf("\n\n");
 }
 
-void api_help() {
+void download_help() {
+	printf("Arguments: 							If no API is specified the default order is used.\n");
+	printf("  -d <API> <hash>: download			Download a malware sample based on the hash\n");
+
 	printf("APIs: 						\n");
 	printf(" -um : unpac_me				\n");
 	printf(" -mp : malpedia				\n");
-	printf(" -ms : malshare				\n");
-	printf(" -ha : hybridanalysis		\n");
-}
-
-
-void download_help() {
-	printf("Arguments: \n");
-	printf("  -d <API> <hash>: download			Download a malware sample based on the hash\n");
+	printf(" -ms : malshare				Not yet added.\n");
+	printf(" -ha : hybridanalysis		Not yet added.\n");
+	printf(" -mb : malware bazaar 		Not Yet added.\n");
 }
 
 void search_help() {
 	printf("Arguments: \n");
-	printf("  -s <hash>: search			Search for a malware sample based on the hash\n");
+	printf("  -s <hash>: search			Search for a malware sample based on the hash.\n");
 }
 
-void yara_help() {
-	printf("Not implemented yet\n");
-
+void context_help() {
+	printf("Arguments: \n");
+	printf("  -c <hash>: context			Analyze the context of the malware sample based on the hash.\n");
 }

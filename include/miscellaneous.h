@@ -9,7 +9,7 @@
 #define BASE64_ENCODE_OUT_SIZE(s) ((((s) + 2) / 3) * 4)
 #define BASE64_DECODE_OUT_SIZE(s) (((s) / 4) * 3)
 
-// Constants
+// Sending love.
 #define CURL_AGENT "（づ￣3￣）づ╭❤️～" 
 
 // Structure to store the response from the API call
@@ -39,5 +39,6 @@ BOOL create_file_nsterminated(char* file_name, char* downloaded_file_data, size_
 BOOL create_file_sterminated(char* file_name, char* downloaded_file_data);
 DWORD WINAPI LoadingAnimationSingleThread(LPVOID lpParam);
 DecodedBase64BinaryData decode_base64(const char* input);
+void hex_dump(const char *data, size_t size);
 
 #endif // MISCELLANEOUS_H
