@@ -1,7 +1,7 @@
 {
   "dependencies": [
     "curl",
-    "cjson", 
+    "cjson",
     "b64"
   ]
 }

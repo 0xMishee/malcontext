@@ -16,12 +16,12 @@ char* open_configuration(const char* key_file) {
     hFile = CreateFileA(key_file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
     if (hFile == INVALID_HANDLE_VALUE) {
-        printf(ANSI_RED"[!] Couldn't not open configuration file : %d \n"ANSI_RESET, GetLastError());
+        printf(ANSI_RED"[!] Couldn't not open configuration file : %lu \n"ANSI_RESET, GetLastError());
         return FALSE;
     }
 
     if (!GetFileSizeEx(hFile, (PLARGE_INTEGER)&fileSize)) {
-        printf(ANSI_RED"[!] Couldn't not get file size : %d \n"ANSI_RESET, GetLastError());
+        printf(ANSI_RED"[!] Couldn't not get file size : %lu \n"ANSI_RESET, GetLastError());
         CloseHandle(hFile);
         return FALSE;
     }
@@ -68,13 +68,20 @@ char* get_api_key_value(const char* api_key_name){
     if (cJSON_IsObject(apiKeys)) {
         cJSON *api_key = cJSON_GetObjectItemCaseSensitive(apiKeys, api_key_name);
 
-        if(cJSON_IsString(api_key) && (api_key->valuestring != NULL)) {
-            char* api_key_value = strdup(api_key->valuestring);
+        if (cJSON_IsString(api_key) && (api_key->valuestring != NULL)) {
+            char* api_key_value = (char*)malloc(strlen(api_key->valuestring) + 1);
+            
+            if (!api_key_value) {
+                fprintf(stderr, ANSI_RED"[!] Failed to allocate memory for API key\n"ANSI_RESET);
+                cJSON_Delete(json);
+                return NULL;
+            }
+            strcpy_s(api_key_value, sizeof(api_key_value), api_key->valuestring);
             cJSON_Delete(json);
             return api_key_value;
         } else {
             const char *error_ptr = cJSON_GetErrorPtr();
-            if (error_ptr != NULL) {
+            if (error_ptr) {
                 fprintf(stderr, ANSI_RED"[!] Could not parse json file: %s\n"ANSI_RESET, error_ptr);
                 cJSON_Delete(json);
                 return NULL;

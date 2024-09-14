@@ -50,7 +50,12 @@ char* convert_time (int timestamp) {
     time_t time = timestamp;
     struct tm *timeinfo;
     static char buffer[20]; 
-    timeinfo = localtime(&time);
+
+    if (localtime_s(timeinfo, &time)){
+        fprintf(stderr, ANSI_RED "[!] Failed to convert timestamp to time\n" ANSI_RESET);
+        return NULL;
+    };
+
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
 
     if(timeinfo->tm_year == 70){
@@ -105,7 +110,7 @@ BOOL check_api_name(char* api_name){
 BOOL create_file_sterminated(char* file_name, char* downloaded_file_data){
     HANDLE hFile = CreateFile(file_name, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE){
-        printf("THis is the error code: %d\n", GetLastError());
+        printf("THis is the error code: %lu\n", GetLastError());
         return FALSE;
     }
     DWORD dwBytesWritten;
@@ -125,14 +130,14 @@ BOOL create_file_sterminated(char* file_name, char* downloaded_file_data){
 BOOL create_file_nsterminated(char* file_name, char* downloaded_file_data, size_t size) {
     HANDLE hFile = CreateFile(file_name, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        printf("This is the error code: %d\n", GetLastError());
+        printf("This is the error code: %lu\n", GetLastError());
         return FALSE;
     }
     
     DWORD dwBytesWritten;
     BOOL write_to_file = WriteFile(hFile, downloaded_file_data, size, &dwBytesWritten, NULL);
     if (write_to_file == FALSE) {
-        fprintf(stderr, ANSI_RED "[!] Error: Failed to write to file. Error code: %d\n" ANSI_RESET, GetLastError());
+        fprintf(stderr, ANSI_RED "[!] Error: Failed to write to file. Error code: %lu\n" ANSI_RESET, GetLastError());
         CloseHandle(hFile);  // Close handle on failure
         return FALSE;
     }

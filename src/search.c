@@ -25,7 +25,7 @@ DWORD WINAPI search_virustotal_available(LPVOID lpParam){
     char* api_key = get_api_key_value("virustotal");
     char* virustotal_response = virustotal_sample_availability(api_key, sample_hash);
     cJSON* virustotal_json = cJSON_Parse(virustotal_response);
-    if (!strcmp(cJSON_GetArrayItem(virustotal_json,0)->string,"error") == 0){
+    if (!(strcmp(cJSON_GetArrayItem(virustotal_json,0)->string,"error") == 0)){
         WaitForSingleObject(hMutex, INFINITE);
         search_api_response->search_virustotal_found = TRUE;
         ReleaseMutex(hMutex);
@@ -93,7 +93,7 @@ DWORD WINAPI search_malshare_available(LPVOID lpParam){
     char* malshare_response = malshare_sample_availability(api_key, sample_hash);
     cJSON* malshare_json = cJSON_Parse(malshare_response);
     cJSON* malshare_data = cJSON_GetArrayItem(malshare_json, 0);
-    if (!strcmp(malshare_data->string, "ERROR") == 0){
+    if (!(strcmp(malshare_data->string, "ERROR") == 0)){
         WaitForSingleObject(hMutex, INFINITE);
         search_api_response->search_malshare_found = TRUE;
         ReleaseMutex(hMutex);

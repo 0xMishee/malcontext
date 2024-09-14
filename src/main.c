@@ -6,6 +6,7 @@
 
 #include "help_custom.h"
 #include "virustotal.h"
+#include "malware_download.h"
 #include "unpac_me.h"
 #include "config.h"
 #include "context.h"
@@ -19,6 +20,15 @@
 #define VIRUS_HASH "cba8d79949adc3c56c02fee56644f4084b7471bc5aed1c81803054f017240a72"
 #define VIRUS_HASH_2 "df7b92b717abe121fb536a0eeb8e323cc9153f70250656dfc670c9650776afa7"
 #define VIRUS_HASH_3 "02e9f0fbb7f3acea4fcf155dc7813e15c1c8d1c77c3ae31252720a9fa7454292"
+
+
+/*
+
+
+
+
+
+*/
 
 
 int main(int argc, char *argv[]) {

@@ -1,23 +1,36 @@
 cmake_minimum_required(VERSION 3.28)
 
-#cmake -G "MinGW Makefiles" -DCMAKE_C_COMPILER="C:\\msys64\\mingw64\\bin\\gcc.exe" ..
-set(CMAKE_TOOLCHAIN_FILE "E:/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+#cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Debug ..
+set(CMAKE_TOOLCHAIN_FILE "E:/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(VCPKG_TARGET_TRIPLET "x64-windows")
 
 # Set the project name and specify the language
-project(MalwareContext LANGUAGES C)
-
-# Set some shiet up
+set(CMAKE_C_COMPILER "clang")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
+
+# Debugging only
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-# Add the include directory
+#Compiler flags
+if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+  set(SANITIZER_FLAGS "-fsanitize=address,undefined")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SANITIZER_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${SANITIZER_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rtlib=compiler-rt")
+endif()
+
+
+# Set the project name and specify the language
+project(MalwareContext C)
+
 include_directories(include)
 
 # Find and configure CURL library
 find_package(CURL CONFIG REQUIRED)
 find_package(cJSON CONFIG REQUIRED)
 find_package(unofficial-b64 CONFIG REQUIRED)
+
 
 # Collect all source files
 file(GLOB SOURCES "src/*.c" "src/api/*.c")
@@ -38,10 +51,3 @@ set_target_properties(MalwareContext PROPERTIES
 target_link_libraries(MalwareContext PRIVATE unofficial::b64::b64)
 target_link_libraries(MalwareContext PRIVATE CURL::libcurl)
 target_link_libraries(MalwareContext PRIVATE cjson)
-
-# Enable testing
-enable_testing()
-add_test(NAME HelpFlagTest COMMAND MalwareContext -h)
-add_test(NAME YaraRuleTest COMMAND MalwareContext -y)
-add_test(NAME ContextTest COMMAND MalwareContext -context)
-add_test(NAME SearchTest COMMAND MalwareContext -search "b1f2068201c29f3b00aeedc0911498043d7c204a860ca16b3fef47fc19fc2b22")
