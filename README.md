@@ -1,5 +1,5 @@
 ## About 
-There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. The tool is heavil inspired by [Malwoverview](https://github.com/alexandreborges/malwoverview) written by Alexandre Borges.
+There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. The tool is heavily inspired by [Malwoverview](https://github.com/alexandreborges/malwoverview) written by Alexandre Borges.
 
 This tool aims to:
 1. Provide easy to chew information for initial triage of malware.
