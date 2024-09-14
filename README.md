@@ -9,7 +9,20 @@ This tool aims to:
 
 
 ## Current Version
-Version 0.0.1.x:
+Version 0.1.0:
+
+```
+This version:
+- Added downloading functionality now to the 3rd party APIs (Malshare, Malwarebazaar, Malpedia, Unpac.Me).
+  These are either zipped or thrown into a .bin file. The file will be saved in the current directory with the name of the hash. (SHA256.zip, SHA256.bin).
+- Added a search function for the 3rd party APIs (Malshare, Malwarebazaar, Malpedia, Unpac.Me) (which is multi-threaded for some really stupid reason). Will more APIs to this one in the future.
+- Experimented quite some with the APIs and figured them out, so the backend for handling is quite "okay" now. 
+- Added a configuration file for the APIs. This is a JSON file and is located in the bin folder. Populate the APIs you will use.
+- Added a help menu. (./malware_analysis -h)
+- General backend cleanup. (I'm sure there's a lot of bad code in there.)
+```
+
+Version 0.1.0:
 ```
 This version: 
 - No stable way of using it; but it won't crash (ง •_•)ง Testing out how I want things to work.
@@ -44,4 +57,7 @@ Open the conf.json in the bin folder and populate the APIs you will use.
 ## Contributors
 
 Me, myself and I. 
+
+
+
 
