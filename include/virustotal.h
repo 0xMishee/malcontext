@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef VIRUSTOTAL_H
 #define VIRUSTOTAL_H
 

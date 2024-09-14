@@ -10,7 +10,7 @@
 #include "ansi_colours.h"
 #include "miscellaneous.h"
 
-// Hex dump function to print binary data
+// Debugging func : Hex dump function to print binary data
 void hex_dump(const char *data, size_t size) {
     for (size_t i = 0; i < size; ++i) {
         if (i % 16 == 0 && i != 0) {
@@ -34,17 +34,17 @@ size_t write_data_callback (void *data, size_t size, size_t nmemb, void *userdat
     api_response->data = ptr;
     memcpy(&(api_response->data[api_response->size]), data, real_size);
     api_response->size += real_size;
-/*
+
     // Debugging: Print the current size and the added size
     //printf("Current size: %zu, Added size: %zu\n", api_response->size, real_size);
     // Debugging: Dump the allocated data
     //printf("Allocated data: %.*s\n", (int)real_size, (char *)data);
     // Print the first 1000 characters in the buffer
     // Debugging: Print a hex dump of the first 1000 bytes
-    size_t dump_size = api_response->size < 1000 ? api_response->size : 1000;
-    printf("Hex dump of the first 1000 bytes (or less):\n");
-    hex_dump(api_response->data, dump_size);
-    */
+    //size_t dump_size = api_response->size < 1000 ? api_response->size : 1000;
+    //printf("Hex dump of the first 1000 bytes (or less):\n");
+    //hex_dump(api_response->data, dump_size);
+
 
     return real_size;
 }
@@ -84,7 +84,7 @@ char* convert_time (int timestamp) {
         return error;
     }
     return buffer;
-}
+};
 
 // Function to append strings to the header. 
 char* append_header_strings(char* header, char* string){
@@ -105,7 +105,7 @@ BOOL hash_sample_validation(char* hash){
         return TRUE;
     }
     return FALSE;
-}
+};
 
 // Print the details of the curl request, for debugging purposes.
 void print_curl_request_details(CURL *hnd, struct curl_slist *headers){
@@ -125,13 +125,12 @@ BOOL check_api_name(char* api_name){
         }
     }
     return FALSE;
-}
+};
 
 // Creates....file?
 BOOL create_file_sterminated(char* file_name, char* downloaded_file_data){
     HANDLE hFile = CreateFile(file_name, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE){
-        printf("THis is the error code: %lu\n", GetLastError());
         return FALSE;
     }
     DWORD dwBytesWritten;
@@ -145,13 +144,12 @@ BOOL create_file_sterminated(char* file_name, char* downloaded_file_data){
         return TRUE;
     }
     return FALSE;
-}
+};
 
 // Creates....file?
 BOOL create_file_nsterminated(char* file_name, char* downloaded_file_data, size_t size) {
     HANDLE hFile = CreateFile(file_name, GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        printf("This is the error code: %lu\n", GetLastError());
         return FALSE;
     }
     
@@ -166,7 +164,7 @@ BOOL create_file_nsterminated(char* file_name, char* downloaded_file_data, size_
     free(downloaded_file_data);
     CloseHandle(hFile);  // Always close the file handle when done
     return TRUE;
-}
+};
 
 // Thread function for the loading animation
 DWORD WINAPI LoadingAnimationSingleThread(LPVOID lpParam) {
@@ -189,7 +187,7 @@ DWORD WINAPI LoadingAnimationSingleThread(LPVOID lpParam) {
     // Clean up once the loading is complete
     printf("\n");
     return 0;
-}
+};
 
 DecodedBase64BinaryData decode_base64(const char* input){
     size_t output_len = BASE64_DECODE_OUT_SIZE(strlen(input));
@@ -208,4 +206,41 @@ DecodedBase64BinaryData decode_base64(const char* input){
 	c += count;
 	
     return (DecodedBase64BinaryData){output, c - output};
+};
+
+int check_for_existence_of_file(const char* file_name){
+
+    // Allocate memory for filename + extension (".zip")
+    char* file_name_with_extension = (char*)malloc(strlen(file_name) + 5); // +5 for ".zip" and null terminator
+    if (file_name_with_extension == NULL) {
+        fprintf(stderr, ANSI_RED "[!] Error: Failed to allocate memory for file name\n" ANSI_RESET);
+        return -1; 
+    }
+
+    strcpy_s(file_name_with_extension, strlen(file_name) + 5, file_name);
+    strcat_s(file_name_with_extension, strlen(file_name) + 5, ".zip");
+
+    // Try opening the file with .zip
+    HANDLE hFile = CreateFile(file_name_with_extension, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile != INVALID_HANDLE_VALUE) {
+        CloseHandle(hFile);
+        free(file_name_with_extension);
+        return 0; // File exists
+    }
+
+    strcpy_s(file_name_with_extension, strlen(file_name) + 5, file_name);
+    strcat_s(file_name_with_extension, strlen(file_name) + 5, ".bin");
+
+    // Try opening the file with .bin
+    hFile = CreateFile(file_name_with_extension, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile != INVALID_HANDLE_VALUE) {
+        CloseHandle(hFile);
+        free(file_name_with_extension);
+        return 0; // File exists
+    }
+    
+    // Cleanup
+    free(file_name_with_extension);
+    CloseHandle(hFile);
+    return 1; // File does not exist
 }

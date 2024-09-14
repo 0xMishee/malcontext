@@ -24,16 +24,7 @@
 #define VIRUS_HASH_2 "df7b92b717abe121fb536a0eeb8e323cc9153f70250656dfc670c9650776afa7"
 #define VIRUS_HASH_3 "02e9f0fbb7f3acea4fcf155dc7813e15c1c8d1c77c3ae31252720a9fa7454292"
 #define VIRUS_HASH_4 "002ed5ec84f3a40fae4ceeaf5b023fe866bab5ac8cacc1bc8a9425626d4ce91c" // Exist on Malware Bazaar
-
-
-/*
-
-
-
-
-
-*/
-
+#define VIRUS_HASH_5 "a1d48085658f342ad2c03c13a47bbc07b009399c4bacd91694a69419649de14b" // Exist on Malshare
 
 int main(int argc, char *argv[]) {
     printf(ANSI_BLUE " __   __  _______  ___      _     _  _______  ______    _______    _______  _______  __    _  _______  _______  __   __  _______  \n");
@@ -42,15 +33,15 @@ int main(int argc, char *argv[]) {
     printf("|       ||       ||   |    |       ||       ||   |_||_ |   |___   |       ||  | |  ||       |  |   |  |   |___ |       |  |   |             \n");
     printf("|       ||       ||   |___ |       ||       ||    __  ||    ___|  |      _||  |_|  ||  _    |  |   |  |    ___| |     |   |   |             \n");
     printf("| ||_|| ||   _   ||       ||   _   ||   _   ||   |  | ||   |___   |     |_ |       || | |   |  |   |  |   |___ |   _   |  |   |             \n");
-    printf("|_|   |_||__| |__||_______||__| |__||__| |__||___|  |_||_______|  |_______||_______||_|  |__|  |___|  |_______||__| |__|  |___|             \n\n\n " ANSI_RESET);
-
+    printf("|_|   |_||__| |__||_______||__| |__||__| |__||___|  |_||_______|  |_______||_______||_|  |__|  |___|  |_______||__| |__|  |___|             \n " ANSI_RESET);
+    printf("\n");
 
     if (argc < 2 || !argv[1]){ 
         printf(ANSI_RED"[!] Error: No arguments provided\n\n\n" ANSI_RESET); 
         return 1;
     };
 
-    printf("Number of arguments given %d\n", argc);
+    //printf("Number of arguments given %d\n", argc);
 
     //Testing malpedia API beep boop
     if (strcmp(argv[1], "-mp_debug") == 0) {
@@ -69,12 +60,14 @@ int main(int argc, char *argv[]) {
     //Testing beep boop
     if (strcmp(argv[1], "-ms_debug") == 0) {
         char* api_key = get_api_key_value("malshare");
-        char* return_string = malshare_sample_test(api_key, VIRUS_HASH_1);
-        char* return_string_2 = malshare_get_rate_limit(api_key);
+
+        if (malshare_download_file(api_key, VIRUS_HASH_5) == TRUE) {
+            printf(ANSI_GREEN"[+] File successfully downloaded\n\n\n" ANSI_RESET);
+            return 0;
+        }
         
         
         free(api_key);
-        free(return_string);
         return 0;
     }
 

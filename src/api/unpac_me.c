@@ -7,8 +7,7 @@
 
 #include "miscellaneous.h"
 
-
-char* unpac_me_sample_availability(char* api_key, char* sample_hash){
+char* unpac_me_search(char* api_key, char* sample_hash){
 
     CURL *hnd = curl_easy_init();
 
@@ -45,10 +44,8 @@ char* unpac_me_sample_availability(char* api_key, char* sample_hash){
 
     // Cleanup
 
-    //free(api_url_header);
     free(api_key_header);
     curl_easy_cleanup(hnd);
-    
     return api_response.data;
 };
 
@@ -126,7 +123,17 @@ char* unpac_me_get_url_batch_job(char* token, char* api_key){
     return api_response.data;
 }
 
+BOOL unpac_me_validate_hash(char* api_key, char* sample_hash) {
 
+    char* response_data = unpac_me_search(api_key, sample_hash);
+    cJSON* response_data_json = cJSON_Parse(response_data);
+    cJSON* response_data_json_string = cJSON_GetArrayItem(response_data_json, 1);
+
+    if (strcmp(response_data_json_string->valuestring, "generic_error") == 0){
+        return FALSE;
+    }
+    return TRUE;
+}
 
 
 

@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef ANSI_COLOURS_H
 #define ANSI_COLOURS_H
 

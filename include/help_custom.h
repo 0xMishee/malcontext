@@ -1,6 +1,3 @@
-#pragma once
-
-
 #ifndef HELP_CUSTOM_H
 #define HELP_CUSTOM_H
 

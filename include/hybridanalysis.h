@@ -1,6 +1,3 @@
-#pragma once
-
-
 #ifndef HYBRIDANALYSIS_H
 #define HYBRIDANALYSIS_H
 

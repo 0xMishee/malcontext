@@ -123,7 +123,6 @@ BOOL malpedia_validate_key_hash(char* api_key, char* sample_hash){
     cJSON* sample_json_data = cJSON_GetArrayItem(sample_json, 0);
 
     if (!sample_response || strcmp(sample_json_data->valuestring, "No Sample matches the given query.") == 0){
-        printf(ANSI_RED "[!] Error: Hash wasn't found on Malpedia\n" ANSI_RESET);
         return FALSE;
     };
 

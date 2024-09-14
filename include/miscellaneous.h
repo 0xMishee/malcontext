@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <time.h>
+#include "ansi_colours.h"
 
 // Macro definitions
 #define BASE64_ENCODE_OUT_SIZE(s) ((((s) + 2) / 3) * 4)
@@ -11,6 +12,10 @@
 
 // Sending love.
 #define CURL_AGENT "（づ￣3￣）づ╭❤️～" 
+
+// Experimenting with standard formatting for print statements...
+#define LOG_ERROR(format, ...) fprintf(stderr, ANSI_RED"[!] " format "\n"ANSI_RESET, __VA_ARGS__)
+#define LOG_SUCCESS(format, ...) fprintf(stdout, ANSI_GREEN"[+] " format "\n"ANSI_RESET, __VA_ARGS__)
 
 // Structure to store the response from the API call
 typedef struct {
@@ -40,5 +45,6 @@ BOOL create_file_sterminated(char* file_name, char* downloaded_file_data);
 DWORD WINAPI LoadingAnimationSingleThread(LPVOID lpParam);
 DecodedBase64BinaryData decode_base64(const char* input);
 void hex_dump(const char *data, size_t size);
+int check_for_existence_of_file(const char* file_name);
 
 #endif // MISCELLANEOUS_H

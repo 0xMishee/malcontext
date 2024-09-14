@@ -2,6 +2,8 @@
 #include <stdlib.h> 
 #include <windows.h>
 #include <string.h> 
+#include <cjson/cJSON.h>
+
 
 #include "config.h"
 #include "search.h"
@@ -55,7 +57,7 @@ DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
     SearchAPIResponse* search_api_response = thread_data->search_api_response;
 
     char* api_key = get_api_key_value("unpacme");
-    char* unpac_me_response = unpac_me_sample_availability(api_key, sample_hash);
+    char* unpac_me_response = unpac_me_search(api_key, sample_hash);
     cJSON* unpac_me_json = cJSON_Parse(unpac_me_response);
     cJSON* matched_analysis = cJSON_GetArrayItem(unpac_me_json, 0);
     if (strcmp(matched_analysis->string, "first_seen") == 0){
@@ -90,7 +92,7 @@ DWORD WINAPI search_malshare_available(LPVOID lpParam){
 
     //search_sample_available(VIRUS_HASH);
     char* api_key = get_api_key_value("malshare");
-    char* malshare_response = malshare_sample_availability(api_key, sample_hash);
+    char* malshare_response = malshare_search(api_key, sample_hash);
     cJSON* malshare_json = cJSON_Parse(malshare_response);
     cJSON* malshare_data = cJSON_GetArrayItem(malshare_json, 0);
     if (!(strcmp(malshare_data->string, "ERROR") == 0)){
