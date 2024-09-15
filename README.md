@@ -9,6 +9,8 @@ This tool aims to:
 
 ## Screenshots
 
+![Help](pictures/picture_1_Help.png)
+
 ![Search Results](pictures/picture_7_Search_Malware_Update.png)
 
 ![Downloaded Files](pictures/picture_8_Download_Malware_Malshare_Update.png)
