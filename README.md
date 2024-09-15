@@ -12,7 +12,7 @@ This tool is built to work with all your API keys plugged in, making the process
 
 ## Screenshots
 
-![Help](pictures/picture_1_Help.png)
+![Help](pictures/picture_9_Help.png)
 
 ![Search Results](pictures/picture_7_Search_Malware_Update.png)
 
