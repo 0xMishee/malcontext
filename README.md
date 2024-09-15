@@ -9,9 +9,9 @@ This tool aims to:
 
 ## Screenshots
 
-![Search Results](pictures/picture_7_Search_Malware_Update)
+![Search Results](pictures/picture_7_Search_Malware_Update.png)
 
-![Downloaded Files](pictures/picture_8_Download_Malware_Malshare_Update)
+![Downloaded Files](pictures/picture_8_Download_Malware_Malshare_Update.png)
 
 
 ## Current Version
