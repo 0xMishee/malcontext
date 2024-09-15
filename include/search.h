@@ -9,6 +9,7 @@ typedef struct {
     BOOL loading_animation_virustotal;
     BOOL loading_animation_unpac_me;
     BOOL loading_animation_malshare;
+    BOOL loading_animation_malpedia;
 } LoadingAnimationFlags;
 
 // Structure to hold the search API response.
@@ -16,6 +17,7 @@ typedef struct {
     BOOL search_virustotal_found;
     BOOL search_unpac_me_found;
     BOOL search_malshare_found;
+    BOOL search_malpedia_found;
 } SearchAPIResponse;
 
 typedef struct {

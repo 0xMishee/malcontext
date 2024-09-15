@@ -44,11 +44,9 @@ int main(int argc, char *argv[]) {
     //printf("Number of arguments given %d\n", argc);
 
     if (strcmp(argv[1], "-first_seen_db") == 0) {
-        char* api_key = get_api_key_value("unpacme");
-        char* response = unpac_me_search(api_key, VIRUS_HASH_3);
-        cJSON* json_response = cJSON_Parse(response);
-        cJSON* date = cJSON_GetArrayItem(json_response, 0);
-        printf("%d", date->valueint);
+        char* api_key = get_api_key_value("malpedia");
+        char* response = malpedia_search_malware(api_key, argv[2]);
+        printf("%s\n", response);
 
 
 

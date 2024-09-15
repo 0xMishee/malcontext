@@ -10,8 +10,45 @@
 #include "virustotal.h"
 #include "unpac_me.h"
 #include "malshare.h"
+#include "malpedia.h"
 #include "ansi_colours.h"
 #include "miscellaneous.h"
+
+
+
+DWORD WINAPI search_malpedia_available(LPVOID lpParam){
+    ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
+    if (!thread_data){
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
+        return 1;
+    };
+
+    HANDLE hMutex = thread_data->hMutex;
+    char* sample_hash = thread_data->sample_hash;
+    LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
+    SearchAPIResponse* search_api_response = thread_data->search_api_response;
+
+
+    char* api_key = get_api_key_value("malpedia");
+    char* malpedia_response = malpedia_search_malware(api_key, sample_hash);
+    cJSON* malpdia_json = cJSON_Parse(malpedia_response);
+
+    if (!(strcmp(cJSON_GetArrayItem(malpdia_json,0)->valuestring,"No Sample matches the given query.") == 0)){
+        WaitForSingleObject(hMutex, INFINITE);
+        search_api_response->search_malpedia_found = TRUE;
+        ReleaseMutex(hMutex);
+    } 
+
+    // Cleanup
+    free(malpedia_response);
+    free(api_key);
+    cJSON_Delete(malpdia_json);
+
+    WaitForSingleObject(hMutex, INFINITE);
+    loading_animation_flags->loading_animation_malpedia = FALSE;
+    ReleaseMutex(hMutex);
+    return 0;
+};
 
 DWORD WINAPI search_virustotal_available(LPVOID lpParam){
     ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
@@ -29,9 +66,8 @@ DWORD WINAPI search_virustotal_available(LPVOID lpParam){
 
     char* api_key = get_api_key_value("virustotal");
     char* virustotal_response = virustotal_sample_availability(api_key, sample_hash);
-    
     cJSON* virustotal_json = cJSON_Parse(virustotal_response);
-    if (!(strcmp(cJSON_GetArrayItem(virustotal_json,0)->string,"error") == 0)){
+    if (strcmp(cJSON_GetArrayItem(virustotal_json,0)->string,"data") == 0){
 
         sample_submission_dates->vt_first_date = (char*)malloc(20*sizeof(char));
 
@@ -39,8 +75,6 @@ DWORD WINAPI search_virustotal_available(LPVOID lpParam){
         WaitForSingleObject(hMutex, INFINITE);
         convert_time_ts(virustotal_submission_date(virustotal_response), sample_submission_dates->vt_first_date, 20*sizeof(char));
         search_api_response->search_virustotal_found = TRUE;
-        
-        
         ReleaseMutex(hMutex);
     } 
 
@@ -170,8 +204,8 @@ void search_sample_available(char* sample_hash){
         return;
     };
 
-    LoadingAnimationFlags loading_flags = { TRUE, TRUE, TRUE };
-    SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE };
+    LoadingAnimationFlags loading_flags = { TRUE, TRUE, TRUE, TRUE };
+    SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE, FALSE };
     SampleSubmissionDates sample_submission_dates = { NULL, NULL };
 
     ThreadSearchData thread_data;
@@ -181,12 +215,18 @@ void search_sample_available(char* sample_hash){
     thread_data.search_api_response = &search_api_response;
     thread_data.sample_submission_dates = &sample_submission_dates;
 
-    HANDLE hThread_virustotal, hThread_unpac_me, hThread_malshare, hThread_loading;
-    DWORD dwThreadId_virustotal, dwThreadId_unpac_me, dwThreadId_malshare, dwThreadId_loading;
+    HANDLE hThread_virustotal, hThread_unpac_me, hThread_malshare, hThread_loading, hThread_malpedia;
+    DWORD dwThreadId_virustotal, dwThreadId_unpac_me, dwThreadId_malshare, dwThreadId_loading, dwThreadId_malpedia;
 
     hThread_loading = CreateThread(NULL, 0, LoadingAnimationFuncMany, &thread_data, 0, &dwThreadId_loading);
     if(!hThread_loading){
         printf(ANSI_RED"[!] Error: Failed to create loading animation thread\n"ANSI_RESET);
+        return;
+    };
+
+    hThread_malpedia = CreateThread(NULL, 0, search_malpedia_available, &thread_data, 0, &dwThreadId_malpedia);
+    if(!hThread_malpedia){
+        printf(ANSI_RED"[!] Error: Failed to create Malpedia thread\n"ANSI_RESET);
         return;
     };
 
@@ -212,8 +252,8 @@ void search_sample_available(char* sample_hash){
     WaitForSingleObject(hThread_loading, INFINITE);
     // debug printf("Im back from the loading thread\n");
 
-    HANDLE threads[] = {hThread_unpac_me, hThread_virustotal};
-    DWORD waitResult = WaitForMultipleObjects(2, threads, TRUE, INFINITE);
+    HANDLE threads[] = {hThread_unpac_me, hThread_virustotal, hThread_malshare};
+    DWORD waitResult = WaitForMultipleObjects(3, threads, TRUE, INFINITE);
     if (waitResult == WAIT_FAILED) {
         printf(ANSI_RED"[!] Error: WaitForMultipleObjects failed\n"ANSI_RESET);
     }
@@ -241,6 +281,14 @@ void search_sample_available(char* sample_hash){
         printf(ANSI_RED"[!] Sample not found on Virustotal\n"ANSI_RESET);
     };
 
+    if (thread_data.search_api_response->search_malpedia_found){
+        printf(ANSI_GREEN"[+] Sample found on Malpedia\n"ANSI_RESET);
+        printf(ANSI_BOLD_GRAY"[-] Submission date not logged\n"ANSI_RESET);
+
+    } else {
+        printf(ANSI_RED"[!] Sample not found on Malpedia\n"ANSI_RESET);
+    };
+
     // Cleanup
     free(sample_submission_dates.vt_first_date);
     free(sample_submission_dates.um_first_date);
@@ -248,6 +296,7 @@ void search_sample_available(char* sample_hash){
     CloseHandle(hThread_virustotal);
     CloseHandle(hThread_unpac_me);
     CloseHandle(hThread_malshare);
+    CloseHandle(hThread_malpedia);
     CloseHandle(hThread_loading);
     CloseHandle(hMutex);
     return;
