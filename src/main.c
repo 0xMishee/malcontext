@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
         return 1;
     };
 
-    printf("Number of arguments given %d\n", argc);
+    //printf("Number of arguments given %d\n", argc);
 
     if (strcmp(argv[1], "-first_seen_db") == 0) {
         char* api_key = get_api_key_value("malwarebazaar");
