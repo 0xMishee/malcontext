@@ -7,7 +7,7 @@ The goals are:
 2. Allow querying APIs from different platforms.
 3. Search for available malware samples.
 3. Download malware through these APIs.
-4. This tool is built to work with all your API keys plugged in, making the process straightforward and accessible for anyone looking to speed up their malware triage.
+This tool is built to work with all your API keys plugged in, making the process straightforward and accessible for anyone looking to speed up their malware triage.
 
 ## Screenshots
 
