@@ -1,5 +1,5 @@
 ## About 
-There are already plenty of malware analysis tools out there, but I’m adding one more to the mix—this time written in C. Inspired by ![Malwoverview](https://github.com/alexandreborges/malwoverview), this tool is designed to make the early stages of malware analysis easier to handle.
+There are already plenty of malware analysis tools out there, but I’m adding one more to the mix—this time written in C. Inspired by [Malwoverview](https://github.com/alexandreborges/malwoverview), this tool is designed to make the early stages of malware analysis easier to handle.
 
 The goals are:
 
