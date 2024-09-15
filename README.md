@@ -1,11 +1,13 @@
 ## About 
-There's just too many tools for malware analysis, so I decided to pollute the waters and add another one written in C. The tool is heavily inspired by [Malwoverview](https://github.com/alexandreborges/malwoverview) written by Alexandre Borges.
+There are already plenty of malware analysis tools out there, but I’m adding one more to the mix—this time written in C. Inspired by ![Malwoverview](https://github.com/alexandreborges/malwoverview), this tool is designed to make the early stages of malware analysis easier to handle.
 
-This tool aims to:
-1. Provide easy to chew information for initial triage of malware.
-2. Option to query APIs from selected plattforms.
-3. Search for availability of malware.
-4. Download malware through the APIs. 
+The goals are:
+
+1. Provide simple, digestible info for malware triage.
+2. Allow querying APIs from different platforms.
+3. Search for available malware samples.
+3. Download malware through these APIs.
+4. This tool is built to work with all your API keys plugged in, making the process straightforward and accessible for anyone looking to speed up their malware triage.
 
 ## Screenshots
 
