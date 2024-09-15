@@ -10,6 +10,7 @@
 char* virustotal_get_behaviour_report(char* api_key, char* hash);
 char* virustotal_get_file_report(char* api_key, char* hash);
 char* virustotal_sample_availability(char* api_key, char* hash);
+int virustotal_submission_date(char* json_response);
 
 //Waiting for love （づ￣3￣）づ╭❤️～
 void virustotal_get_ip(char ip_address,char* api_key);
@@ -19,6 +20,7 @@ void virustotal_post_file_rescan(char* api_key, char* hash);
 void virustotal_post_URL(char url, char* api_key);
 void virustotal_get_url_analysis_report(char url, char* api_key);
 void virustotal_post_url_rescan(char url, char* api_key);
+
 
 
 // Helper functions

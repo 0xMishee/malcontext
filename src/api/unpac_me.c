@@ -136,7 +136,11 @@ BOOL unpac_me_validate_hash(char* api_key, char* sample_hash) {
 }
 
 
-
+int unpac_me_submission_date(char* json_response){
+    cJSON* json = cJSON_Parse(json_response);
+    cJSON* submission_date = cJSON_GetArrayItem(json, 0);
+    return submission_date->valueint;
+}
 
 
 

@@ -11,6 +11,7 @@
 #include "unpac_me.h"
 #include "malshare.h"
 #include "ansi_colours.h"
+#include "miscellaneous.h"
 
 DWORD WINAPI search_virustotal_available(LPVOID lpParam){
     ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
@@ -23,13 +24,23 @@ DWORD WINAPI search_virustotal_available(LPVOID lpParam){
     char* sample_hash = thread_data->sample_hash;
     LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
     SearchAPIResponse* search_api_response = thread_data->search_api_response;
+    SampleSubmissionDates* sample_submission_dates = thread_data->sample_submission_dates;
+
 
     char* api_key = get_api_key_value("virustotal");
     char* virustotal_response = virustotal_sample_availability(api_key, sample_hash);
+    
     cJSON* virustotal_json = cJSON_Parse(virustotal_response);
     if (!(strcmp(cJSON_GetArrayItem(virustotal_json,0)->string,"error") == 0)){
+
+        sample_submission_dates->vt_first_date = (char*)malloc(20*sizeof(char));
+
+
         WaitForSingleObject(hMutex, INFINITE);
+        convert_time_ts(virustotal_submission_date(virustotal_response), sample_submission_dates->vt_first_date, 20*sizeof(char));
         search_api_response->search_virustotal_found = TRUE;
+        
+        
         ReleaseMutex(hMutex);
     } 
 
@@ -55,18 +66,24 @@ DWORD WINAPI search_unpac_me_available(LPVOID lpParam){
     char* sample_hash = thread_data->sample_hash;
     LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
     SearchAPIResponse* search_api_response = thread_data->search_api_response;
+    SampleSubmissionDates* sample_submission_dates = thread_data->sample_submission_dates;
 
     char* api_key = get_api_key_value("unpacme");
     char* unpac_me_response = unpac_me_search(api_key, sample_hash);
     cJSON* unpac_me_json = cJSON_Parse(unpac_me_response);
     cJSON* matched_analysis = cJSON_GetArrayItem(unpac_me_json, 0);
     if (strcmp(matched_analysis->string, "first_seen") == 0){
+
+        sample_submission_dates->um_first_date = (char*)malloc(20*sizeof(char));
+
         WaitForSingleObject(hMutex, INFINITE);
+        convert_time_ts(unpac_me_submission_date(unpac_me_response), sample_submission_dates->um_first_date, 20*sizeof(char));
         search_api_response->search_unpac_me_found = TRUE;
         ReleaseMutex(hMutex);
     } 
 
     // Cleanup
+
     free(unpac_me_response);
     free(api_key);
     cJSON_Delete(unpac_me_json);
@@ -155,12 +172,14 @@ void search_sample_available(char* sample_hash){
 
     LoadingAnimationFlags loading_flags = { TRUE, TRUE, TRUE };
     SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE };
+    SampleSubmissionDates sample_submission_dates = { NULL, NULL };
 
     ThreadSearchData thread_data;
     thread_data.hMutex = hMutex;
     thread_data.sample_hash = sample_hash;
     thread_data.loading_animation_flags = &loading_flags;
     thread_data.search_api_response = &search_api_response;
+    thread_data.sample_submission_dates = &sample_submission_dates;
 
     HANDLE hThread_virustotal, hThread_unpac_me, hThread_malshare, hThread_loading;
     DWORD dwThreadId_virustotal, dwThreadId_unpac_me, dwThreadId_malshare, dwThreadId_loading;
@@ -202,23 +221,30 @@ void search_sample_available(char* sample_hash){
     // debug printf("Im back from the search threads, time to print results!\n");
     if(thread_data.search_api_response->search_malshare_found){
         printf(ANSI_GREEN"[+] Sample found on Malshare\n"ANSI_RESET);
+        printf(ANSI_BOLD_GRAY"[-] Submission date not logged\n"ANSI_RESET);
     } else {
         printf(ANSI_RED"[!] Sample not found on Malshare\n"ANSI_RESET);
     };
 
     if (thread_data.search_api_response->search_unpac_me_found){
         printf(ANSI_GREEN"[+] Sample found on Unpac.me\n"ANSI_RESET);
+        printf(ANSI_GREEN"[+] Submission date : %s\n"ANSI_RESET, thread_data.sample_submission_dates->um_first_date);
+
     } else {
         printf(ANSI_RED"[!] Sample not found on Unpac.me\n"ANSI_RESET);
     };
 
     if (thread_data.search_api_response->search_virustotal_found){
         printf(ANSI_GREEN"[+] Sample found on Virustotal\n"ANSI_RESET);
+        printf(ANSI_GREEN"[+] Submission date : %s\n"ANSI_RESET, thread_data.sample_submission_dates->vt_first_date);
     } else {
         printf(ANSI_RED"[!] Sample not found on Virustotal\n"ANSI_RESET);
     };
 
     // Cleanup
+    free(sample_submission_dates.vt_first_date);
+    free(sample_submission_dates.um_first_date);
+
     CloseHandle(hThread_virustotal);
     CloseHandle(hThread_unpac_me);
     CloseHandle(hThread_malshare);

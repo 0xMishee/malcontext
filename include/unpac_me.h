@@ -8,6 +8,7 @@ char* unpac_me_search(char* api_key, char* sample_hash);
 char* unpac_me_get_batch_id(char* api_key, char* sample_hash);
 char* unpac_me_get_url_batch_job(char* token, char* api_key);
 BOOL unpac_me_validate_hash(char* api_key, char* sample_hash);
+int unpac_me_submission_date(char* json_response);
 
 
 

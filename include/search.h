@@ -18,13 +18,22 @@ typedef struct {
     BOOL search_malshare_found;
 } SearchAPIResponse;
 
+typedef struct {
+    char* vt_first_date;
+    char* um_first_date;
+} SampleSubmissionDates;
+
+
 // Structure to hold the mutex handle and sample_hash n stuff, oh god it's growing!. Might move to mischeallaneous.h later.
 typedef struct {
     HANDLE hMutex;
     char* sample_hash;
     LoadingAnimationFlags* loading_animation_flags;
     SearchAPIResponse* search_api_response;
+    SampleSubmissionDates* sample_submission_dates;
 } ThreadSearchData;
+
+
 
 void search_sample_available(char* sample_hash);
 

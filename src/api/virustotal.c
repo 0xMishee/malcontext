@@ -283,3 +283,12 @@ void virustotal_post_url_rescan(char url,char* api_key) {
     free(api_key_header);
     return;
 };
+
+
+int virustotal_submission_date(char* json_response){
+    cJSON* json = cJSON_Parse(json_response);
+    cJSON* data = cJSON_GetObjectItem(json, "data");
+    cJSON* attributes = cJSON_GetObjectItem(data, "attributes");
+    cJSON* submission_date = cJSON_GetObjectItem(attributes, "first_submission_date");
+    return submission_date->valueint;
+};

@@ -37,6 +37,7 @@ typedef struct {
 size_t write_json_callback(void *data, size_t size, size_t nmemb, void *userdata);
 size_t write_data_callback(void *data, size_t size, size_t nmemb, void *userdata);
 char* convert_time(int timestamp);
+int convert_time_ts(int timestamp, char* buffer, size_t buff_size);
 char* append_header_strings(char* header, char* string);
 BOOL hash_sample_validation(char* hash);
 BOOL check_api_name(char* api_name);
@@ -46,5 +47,6 @@ DWORD WINAPI LoadingAnimationSingleThread(LPVOID lpParam);
 DecodedBase64BinaryData decode_base64(const char* input);
 void hex_dump(const char *data, size_t size);
 int check_for_existence_of_file(const char* file_name);
+
 
 #endif // MISCELLANEOUS_H

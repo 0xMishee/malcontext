@@ -70,20 +70,33 @@ size_t write_json_callback(void* data, size_t size, size_t nmemb, void* userdata
 char* convert_time (int timestamp) {
     time_t time = timestamp;
     struct tm *timeinfo;
-    static char buffer[20]; 
+    char* buffer = (char*)malloc(20*sizeof(char)); 
 
     if (localtime_s(timeinfo, &time)){
-        fprintf(stderr, ANSI_RED "[!] Failed to convert timestamp to time\n" ANSI_RESET);
+        printf(ANSI_RED "[!] Failed to convert timestamp to time\n"ANSI_RESET);
         return NULL;
     };
 
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
 
-    if(timeinfo->tm_year == 70){
-        char* error = "No date available";
-        return error;
-    }
     return buffer;
+};
+
+// MT-Safe version. 
+int convert_time_ts(int timestamp, char* buffer, size_t buff_size){
+    time_t time = timestamp;
+    struct tm timeinfo;
+
+    if (localtime_s(&timeinfo, &time) != 0) {
+        printf(ANSI_RED"[!] Failed to convert timestamp to time\n"ANSI_RESET);
+        return -1;
+    }
+
+    if (strftime(buffer, buff_size, "%Y-%m-%d %H:%M:%S", &timeinfo) == 0) {
+        printf(ANSI_RED"[!] Failed to format time\n"ANSI_RESET);
+        return -1;
+    }
+    return 0;
 };
 
 // Function to append strings to the header. 
