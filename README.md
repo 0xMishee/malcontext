@@ -7,6 +7,12 @@ This tool aims to:
 3. Search for availability of malware.
 4. Download malware through the APIs. 
 
+## Screenshots
+
+![Search Results](pictures/picture_7_Search_Malware_Update)
+
+![Downloaded Files](pictures/picture_8_Download_Malware_Malshare_Update)
+
 
 ## Current Version
 Version 0.1.0:
