@@ -13,6 +13,49 @@
 #include "malpedia.h"
 #include "ansi_colours.h"
 #include "miscellaneous.h"
+#include "malwarebazaar.h"
+
+
+DWORD WINAPI search_malwarebazaar_available(LPVOID lpParam){
+    ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
+    if (!thread_data){
+        fprintf(stderr, ANSI_RED"[!] Error: No thread data provided\n"ANSI_RESET);
+        return 1;
+    };
+
+    HANDLE hMutex = thread_data->hMutex;
+    char* sample_hash = thread_data->sample_hash;
+    LoadingAnimationFlags* loading_animation_flags = thread_data->loading_animation_flags;
+    SearchAPIResponse* search_api_response = thread_data->search_api_response;
+    SampleSubmissionDates* sample_submission_dates = thread_data->sample_submission_dates;
+
+    char* malwarebazaar_response = malwarebazaar_search(sample_hash);
+    cJSON* malwarebazaar_json = cJSON_Parse(malwarebazaar_response);
+
+    if (strcmp(cJSON_GetArrayItem(malwarebazaar_json,0)->valuestring,"ok") == 0){
+
+        // 🫣 What is this inception of arrays...
+        sample_submission_dates->mb_first_date = (char*)malloc(20*sizeof(char));
+        cJSON* response_json_array = cJSON_GetArrayItem(malwarebazaar_json, 1);
+        cJSON* response_json_second_array = cJSON_GetArrayItem(response_json_array, 0);
+        cJSON* date = cJSON_GetObjectItem(response_json_second_array, "first_seen");
+
+
+        WaitForSingleObject(hMutex, INFINITE);
+        strcpy_s(sample_submission_dates->mb_first_date, 20*sizeof(char), date->valuestring); 
+        search_api_response->search_malwarebazaar_found = TRUE;
+        ReleaseMutex(hMutex);
+    } 
+
+    // Cleanup
+    free(malwarebazaar_response);
+    cJSON_Delete(malwarebazaar_json);
+
+    WaitForSingleObject(hMutex, INFINITE);
+    loading_animation_flags->loading_animation_malwarebazaar = FALSE;
+    ReleaseMutex(hMutex);
+    return 0;
+};
 
 
 
@@ -176,7 +219,10 @@ DWORD WINAPI LoadingAnimationFuncMany(LPVOID lpParam) {
     // debug printf("checking while true!\n");
     while (TRUE) {
         WaitForSingleObject(hMutex, INFINITE);
-        BOOL loading_animation = loading_animation_flags->loading_animation_malshare || loading_animation_flags->loading_animation_unpac_me || loading_animation_flags->loading_animation_malshare;
+        // Starting to get out of control..lmao 
+        BOOL loading_animation = loading_animation_flags->loading_animation_malshare || loading_animation_flags->loading_animation_unpac_me 
+        || loading_animation_flags->loading_animation_malshare || loading_animation_flags->loading_animation_malpedia 
+        || loading_animation_flags->loading_animation_malwarebazaar;
         ReleaseMutex(hMutex);
 
         if (!loading_animation) {
@@ -204,9 +250,9 @@ void search_sample_available(char* sample_hash){
         return;
     };
 
-    LoadingAnimationFlags loading_flags = { TRUE, TRUE, TRUE, TRUE };
-    SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE, FALSE };
-    SampleSubmissionDates sample_submission_dates = { NULL, NULL };
+    LoadingAnimationFlags loading_flags = { TRUE, TRUE, TRUE, TRUE, TRUE };
+    SearchAPIResponse search_api_response = { FALSE, FALSE, FALSE, FALSE, FALSE };
+    SampleSubmissionDates sample_submission_dates = { NULL, NULL, NULL };
 
     ThreadSearchData thread_data;
     thread_data.hMutex = hMutex;
@@ -215,8 +261,8 @@ void search_sample_available(char* sample_hash){
     thread_data.search_api_response = &search_api_response;
     thread_data.sample_submission_dates = &sample_submission_dates;
 
-    HANDLE hThread_virustotal, hThread_unpac_me, hThread_malshare, hThread_loading, hThread_malpedia;
-    DWORD dwThreadId_virustotal, dwThreadId_unpac_me, dwThreadId_malshare, dwThreadId_loading, dwThreadId_malpedia;
+    HANDLE hThread_virustotal, hThread_unpac_me, hThread_malshare, hThread_loading, hThread_malpedia, hThread_malwarebazaar;
+    DWORD dwThreadId_virustotal, dwThreadId_unpac_me, dwThreadId_malshare, dwThreadId_loading, dwThreadId_malpedia, dwThreadId_malwarebazaar;
 
     hThread_loading = CreateThread(NULL, 0, LoadingAnimationFuncMany, &thread_data, 0, &dwThreadId_loading);
     if(!hThread_loading){
@@ -236,6 +282,12 @@ void search_sample_available(char* sample_hash){
         return;
     };
 
+    hThread_malwarebazaar = CreateThread(NULL, 0, search_malwarebazaar_available, &thread_data, 0, &dwThreadId_malwarebazaar);
+    if(!hThread_virustotal){
+        printf(ANSI_RED"[!] Error: Failed to create MalwareBazaar thread\n"ANSI_RESET);
+        return;
+    };
+
     hThread_unpac_me = CreateThread(NULL, 0, search_unpac_me_available, &thread_data, 0, &dwThreadId_unpac_me);
     if(!hThread_unpac_me){
         printf(ANSI_RED"[!] Error: Failed to create Unpac.me thread\n"ANSI_RESET);
@@ -252,8 +304,8 @@ void search_sample_available(char* sample_hash){
     WaitForSingleObject(hThread_loading, INFINITE);
     // debug printf("Im back from the loading thread\n");
 
-    HANDLE threads[] = {hThread_unpac_me, hThread_virustotal, hThread_malshare};
-    DWORD waitResult = WaitForMultipleObjects(3, threads, TRUE, INFINITE);
+    HANDLE threads[] = {hThread_unpac_me, hThread_virustotal, hThread_malshare, hThread_malwarebazaar};
+    DWORD waitResult = WaitForMultipleObjects(4, threads, TRUE, INFINITE);
     if (waitResult == WAIT_FAILED) {
         printf(ANSI_RED"[!] Error: WaitForMultipleObjects failed\n"ANSI_RESET);
     }
@@ -289,9 +341,18 @@ void search_sample_available(char* sample_hash){
         printf(ANSI_RED"[!] Sample not found on Malpedia\n"ANSI_RESET);
     };
 
+    if (thread_data.search_api_response->search_malwarebazaar_found){
+        printf(ANSI_GREEN"[+] Sample found on MalwareBazaar\n"ANSI_RESET);
+        printf(ANSI_GREEN"[+] Submission date : %s\n"ANSI_RESET, thread_data.sample_submission_dates->mb_first_date);
+
+    } else {
+        printf(ANSI_RED"[!] Sample not found on MalwareBazaar\n"ANSI_RESET);
+    };
+
     // Cleanup
     free(sample_submission_dates.vt_first_date);
     free(sample_submission_dates.um_first_date);
+    free(sample_submission_dates.mb_first_date);
 
     CloseHandle(hThread_virustotal);
     CloseHandle(hThread_unpac_me);

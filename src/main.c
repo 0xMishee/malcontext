@@ -44,9 +44,17 @@ int main(int argc, char *argv[]) {
     //printf("Number of arguments given %d\n", argc);
 
     if (strcmp(argv[1], "-first_seen_db") == 0) {
-        char* api_key = get_api_key_value("malpedia");
-        char* response = malpedia_search_malware(api_key, argv[2]);
-        printf("%s\n", response);
+        char* api_key = get_api_key_value("malwarebazaar");
+        char* response = malwarebazaar_search(argv[2]);
+        cJSON* response_json = cJSON_Parse(response);
+        cJSON* response_json_array = cJSON_GetArrayItem(response_json, 1);
+        cJSON* response_json_second_array = cJSON_GetArrayItem(response_json_array, 0);
+        cJSON* date = cJSON_GetObjectItem(response_json_second_array, "first_seen");
+
+
+
+
+        printf("%s\n", date->valuestring);
 
 
 

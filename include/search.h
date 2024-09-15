@@ -10,6 +10,7 @@ typedef struct {
     BOOL loading_animation_unpac_me;
     BOOL loading_animation_malshare;
     BOOL loading_animation_malpedia;
+    BOOL loading_animation_malwarebazaar;
 } LoadingAnimationFlags;
 
 // Structure to hold the search API response.
@@ -18,11 +19,13 @@ typedef struct {
     BOOL search_unpac_me_found;
     BOOL search_malshare_found;
     BOOL search_malpedia_found;
+    BOOL search_malwarebazaar_found;
 } SearchAPIResponse;
 
 typedef struct {
     char* vt_first_date;
     char* um_first_date;
+    char* mb_first_date;
 } SampleSubmissionDates;
 
 
