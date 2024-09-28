@@ -67,20 +67,24 @@ size_t write_json_callback(void* data, size_t size, size_t nmemb, void* userdata
 };
 
 // Function to convert timestamp to formatted time string
-char* convert_time (int timestamp) {
-    time_t time = timestamp;
-    struct tm *timeinfo;
-    char* buffer = (char*)malloc(20*sizeof(char)); 
+char* convert_time(int timestamp) {
+    time_t raw_time = timestamp;
+    struct tm timeinfo;
+    char* buffer = (char*)malloc(20 * sizeof(char));
 
-    if (localtime_s(timeinfo, &time)){
-        printf(ANSI_RED "[!] Failed to convert timestamp to time\n"ANSI_RESET);
+    if (buffer == NULL) {
+        printf(ANSI_RED "[!] Failed to allocate memory\n" ANSI_RESET);
         return NULL;
-    };
+    }
 
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
-
+    if (localtime_s(&timeinfo, &raw_time)) {
+        printf(ANSI_RED "[!] Failed to convert timestamp to time\n" ANSI_RESET);
+        free(buffer);
+        return NULL;
+    }
+    strftime(buffer, 20, "%Y-%m-%d %H:%M:%S", &timeinfo);
     return buffer;
-};
+}
 
 // MT-Safe version. 
 int convert_time_ts(int timestamp, char* buffer, size_t buff_size){
@@ -110,7 +114,7 @@ char* append_header_strings(char* header, char* string){
 // Check so it's a valid hash. Check so its 256/128 characters long and only contains alphanumerical characters.
 BOOL hash_sample_validation(char* hash){
     if (strlen(hash) == 32 || strlen(hash) == 64){
-        for (int i = 0; i < strlen(hash); i++){
+        for (size_t i = 0; i < strlen(hash); i++){
             if (!isalnum(hash[i])){
                 return FALSE;
             }
@@ -132,7 +136,7 @@ void print_curl_request_details(CURL *hnd, struct curl_slist *headers){
 //Checks if api_name is in the list of available APIs
 BOOL check_api_name(char* api_name){
     char* available_apis[] = {"-um", "-mp", "-ms", "-ha", "-mb"};
-    for (int i = 0; i < 4; i++){
+    for (size_t i = 0; i < 4; i++){
         if (strcmp(api_name, available_apis[i]) == 0){
             return TRUE;
         }
@@ -188,7 +192,7 @@ DWORD WINAPI LoadingAnimationSingleThread(LPVOID lpParam) {
     }
 
     const char* animation = "|/-\\";
-    int i = 0;
+    size_t i = 0;
 
     while (loading_animation->batch_job_wait) {
         // Display loading animation
@@ -211,7 +215,7 @@ DecodedBase64BinaryData decode_base64(const char* input){
     }
 
 	char* c = output;
-	int count = 0;
+	size_t count = 0;
 	base64_decodestate state;
 
 	base64_init_decodestate(&state);

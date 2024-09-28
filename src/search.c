@@ -4,7 +4,6 @@
 #include <string.h> 
 #include <cjson/cJSON.h>
 
-
 #include "config.h"
 #include "search.h"
 #include "virustotal.h"
@@ -56,8 +55,6 @@ DWORD WINAPI search_malwarebazaar_available(LPVOID lpParam){
     ReleaseMutex(hMutex);
     return 0;
 };
-
-
 
 DWORD WINAPI search_malpedia_available(LPVOID lpParam){
     ThreadSearchData* thread_data = (ThreadSearchData*)lpParam;
@@ -215,7 +212,7 @@ DWORD WINAPI LoadingAnimationFuncMany(LPVOID lpParam) {
 
     // debug printf("time to define some stuff\n");
     const char* animation = "|/-\\";
-    int i = 0;
+    size_t i = 0;
     // debug printf("checking while true!\n");
     while (TRUE) {
         WaitForSingleObject(hMutex, INFINITE);
