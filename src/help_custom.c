@@ -30,7 +30,7 @@ void print_help_pages() {
 
 	printf("Additional Information:                                                                  		\n");
 	printf("  Author: Martin Jakobsson                                                               		\n");
-	printf("  Version: 0.1.0                                                                         		\n");
+	printf("  Version: 1.0.0                                                                         		\n");
 	printf("  License: GPL-3.0 license                                                               		\n");
 	printf("\n\n");
 }
