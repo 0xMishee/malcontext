@@ -18,9 +18,20 @@ This tool is built to work with all your API keys plugged in, making the process
 
 ![Downloaded Files](pictures/picture_8_Download_Malware_Malshare_Update.png)
 
+![Downloaded Files](pictures/picture_10_Context_First.png)
+
 
 ## Current Version
-Version 0.1.0:
+Version 1.0.0:
+
+```
+This version:
+- Added Context function. Will add more functions from the different APIs now, starting with MalwareBazaar.
+- Cleaned up a bit in the repo.
+```
+
+
+Version 0.2.0:
 
 ```
 This version:
